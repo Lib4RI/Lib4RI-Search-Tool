@@ -1,0 +1,10 @@
+
+Intended installation directory for CiteProc:
+	https://github.com/seboettg/citeproc-php
+
+Idea was not to have Citeproc inside our web (search) installation directly,
+and to simply set a symbolic link to that directory:
+	cd /var/www/html/web
+	sudo ln -s ../citeproc ./citeproc
+
+

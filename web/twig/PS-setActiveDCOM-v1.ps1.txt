@@ -1,0 +1,81 @@
+﻿
+###############################################################################################################
+<#
+    Erstellt am 09.5.2022
+
+    PS-Script: PS-setActiveDCOM-v1.ps1
+                    
+#>
+################################################################################################################
+
+Cls
+
+$error.Clear()
+
+################################################################################################################
+#######################################      Startfunction      ################################################
+
+ # Step 1       Active the RequireIntegrityActivationAuthenticationLevel
+
+             write-host "-----------------------"
+             write-host $env:computername
+             write-host "-----------------------"
+                                                                                    
+              # Set variables to indicate value and key to set
+             $RegistryPath = "HKLM:\SOFTWARE\Microsoft\Ole\AppCompat\"
+             $variableName = 'RequireIntegrityActivationAuthenticationLevel'
+
+             $valueActivate    = '0x00000001'
+      
+            Set-ItemProperty -Path $RegistryPath -Name $variableName -Value $valueActivate  -Force
+           
+
+ #Step 2        --> Restart your Server
+
+
+ #Step 3        Checking your Services
+  
+# ---------------------------------------
+
+# Step 4 Checking Event ID from DCOM
+
+# Notice     -DCOM ServerEvents = 10036   -DCOM ClientEvents = 10037  + 10038
+
+         # Search serverEvent ID 10036
+         $ServerEventID = Get-EventLog -LogName  system -Source "DCOM" | where {($_.eventID -eq 10036) } 
+         $ServerEventID
+
+# ---------------------------------------------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------------------------------------------------#
+
+ # Only in Emergency, if dcom makes problems, set everything back againn
+  
+             # 1.  Disable the RequireIntegrityActivationAuthenticationLevel
+
+
+                    write-host "-----------------------"
+                    write-host $env:computername
+                    write-host "-----------------------"
+                                                                                    
+                    # Set variables to indicate value and key to set
+                    $RegistryPath = "HKLM:\SOFTWARE\Microsoft\Ole\AppCompat\"
+                    $variableName = 'RequireIntegrityActivationAuthenticationLevel'
+
+                    $valueDisable     = '0x00000000'
+
+                Set-ItemProperty -Path $RegistryPath -Name $variableName -Value $valueDisable  -Force
+
+             
+             # 2.  --> Restart your Server
+
+            
+             # 3. Checking your Services
+
+
+# 
+
+
+
+
+
+

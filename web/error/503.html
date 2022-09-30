@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=0, width=device-width"/>
+	<meta name="HandheldFriendly" content="True">
+	<meta name="MobileOptimized" content="640">
+	<meta name='robots' content='noindex,nofollow' />
+	<title>Lib4RI Web Search - Access forbidden</title>
+	<meta name="author" content="Lib4RI" />
+</head>
+<body style="font-family: calibri,sans-serif; background-color:#292827;">
+
+<style type="text/css">
+	body {
+		background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Restaurant_closed_due_to_Coronavirus_pandemic_%2850654621531%29.jpg/320px-Restaurant_closed_due_to_Coronavirus_pandemic_%2850654621531%29.jpg');
+		background-size: cover;
+		background-repeat: no-repeat;
+		background-position: 50% 5%;
+		width: 100%;
+		height: 100%;
+	}
+	#full-page {
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 1;
+		background-image: url('');
+		background-size: cover;
+		background-repeat: no-repeat;
+		background-position: 50% 27%;
+		width: 100%;
+		height: 100%;
+	}
+	#content * {
+		color: #732;
+		z-index: 4;
+	}
+	.container {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding-top:12%;
+		padding-left:8%;
+	}
+	.title {
+		font-weight: 900;
+		font-size: 72px;
+		text-shadow: 2px 2px 2px #000, 2px -2px 2px #000, -2px 2px 2px #000, -2px -2px 2px #000;
+	}
+	.desc {
+		color: #621 !important;
+		font-size: 24px;
+	}
+	.hint {
+		font-size: 18px;
+		font-weight: 700;
+		color: #fec !important;
+		text-shadow: 2px 2px 2px #211, 2px -2px 2px #211, -2px 2px 2px #211, -2px -2px 2px #211;
+		white-space: pre-line;
+	}
+	#header-area {
+		width: 100%;
+		text-align:right;
+		z-index: 5;
+		position: fixed;
+		top: 3ex;
+		left: -2ex;
+	}
+	#footer-area {
+		width: 100%;
+		text-align:right;
+		z-index: 5;
+		position: fixed;
+		bottom: -3ex;
+		left: -3ex;
+	}
+
+	/* Smartphone Tunings */
+	@media screen and (max-width: 1090px) {
+		body {
+			background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Restaurant_closed_due_to_Coronavirus_pandemic_%2850654621531%29.jpg/320px-Restaurant_closed_due_to_Coronavirus_pandemic_%2850654621531%29.jpg');
+			background-size: cover;
+			background-repeat: no-repeat;
+			background-position: 50% 0;
+			width: 100%;
+			height: 100%;
+		}
+		#full-page {
+			position: fixed;
+			top: 0;
+			left: 0;
+			z-index: 1;
+			background-image: url('');
+			background-size: contain;
+			background-repeat: no-repeat;
+			background-position: 50% 0;
+			width: 100%;
+			height: 100%;
+		}
+		#header-area {
+			width: 100%;
+			text-align:right;
+			z-index: 5;
+			position: fixed;
+			top: 0ex;
+			left: -2ex;
+		}
+		.hint {
+			font-size: 5pt;
+			color: #ccb !important;
+			text-shadow: 1px 1px 1px #211, 1px -1px 1px #211, -1px 1px 1px #211, -1px -1px 1px #211;
+			white-space: nowrap;
+		}
+	}
+
+</style>
+
+<div id="full-page">
+	<div id="header-area" class="hint">Photo by 
+	<a class="hint" href="https://commons.wikimedia.org/wiki/File:Restaurant_closed_due_to_Coronavirus_pandemic_%2850654621531%29.jpg" target="_blank" style="white-space:nowrap;">Ivan Radic</a> 
+	&nbsp;<a class="hint" href="https://commons.wikimedia.org/wiki/File:Restaurant_closed_due_to_Coronavirus_pandemic_%2850654621531%29.jpg" target="_blank" style="white-space:nowrap;">CC-BY</a></div>
+	<div id="main-area" class="container"></div>
+	<div id="footer-area"><span style='color:white;'><!-- Header Area --></span></div>
+	</div>
+</div>
+
+</body>
+ 
+<script type="text/javascript"><!--
+if ( elem = document.getElementById('full-page') ) {
+	let hiQ = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Restaurant_closed_due_to_Coronavirus_pandemic_%2850654621531%29.jpg/2560px-Restaurant_closed_due_to_Coronavirus_pandemic_%2850654621531%29.jpg';
+	if ( sessionStorage.getItem("lib4ri-websearch-503",false) ) {
+		elem.style.backgroundImage = "url('" + hiQ + "')";
+	} else {
+		setTimeout( () => {
+			elem.style.backgroundImage = "url('" + hiQ + "')";
+			sessionStorage.setItem("lib4ri-websearch-503", true);
+		}, 400 );
+	}
+}
+//--></script>
+
+</html>

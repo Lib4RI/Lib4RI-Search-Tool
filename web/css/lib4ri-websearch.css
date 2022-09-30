@@ -1,0 +1,501 @@
+/* Temporary 'corrections' for Drupal */
+.layout-main {
+	margin-top: 0px;
+	margin-bottom: 30px;
+	position: relative;
+	top: -20px;
+	z-index: 90;
+}
+.layout-container { max-width: 1920px; }
+.header { display: none; }
+.region-header { display: none; }
+.region-primary-menu { display: none; }
+
+
+/* Desktop CSS definitions */
+body {
+	font-family: calibri,sans-serif;
+	font-size: 12pt;
+	line-height: 15pt;
+	color: #444;
+	width:96%;
+	margin-left:2%;
+	margin-right:2%;
+}
+div {
+	vertical-align: top;
+	color: #444;
+}
+h1,h2,h3 {
+	color: #1A9481;
+	font-weight: 700;
+}
+
+a:link	{ color: #1A9481; }
+a:visited { color: #0A7461; }
+a:hover	{ color: #2AB491; }
+a:focus { color: #2AB491; }
+a:active {color: #2AB491; }
+
+a.lib4ri-search-tab-link {     
+	display: inline-block;
+	width: 97%;
+	position: relative;    
+	z-index: 26;  
+	padding: 1ex;
+	margin: -1ex;
+	text-decoration: none !important;
+	border-bottom: 0 none !important;
+	font-size: 13pt;
+}
+
+.lib4ri-ul-flat {
+	margin: 0 0 0 4.75ex !important;
+	list-style: revert;
+}
+.OFF.ul.lib4ri-ul-flat ul {
+	margin: 0 0 0 1.9ex !important;
+	list-style: revert;
+}
+.OFF.lib4ri-li-wide { padding-left: 0 !important; }
+
+.lib4ri-tabul-issn {
+	min-width: 6ex;
+	float: left;
+}
+
+.lib4ri-toggle-opened::before {
+	content: "\21D0";
+	line-height: 1ex;
+	position: relative;
+	top: -0.25ex;
+	left: -0.3ex;
+}
+.lib4ri-toggle-closed::before {
+	content: "\21D3";
+	position: relative;
+	line-height: 1ex;
+	top: -0.1ex;
+	left: -0.1ex;
+}
+
+.lib4ri-trend-up::before {
+	content: "\2197";
+	line-height: 1ex;
+	font-size: 100%;
+}
+.lib4ri-trend-steady::before {
+	content: "\2192";
+	line-height: 1ex;
+	font-size: 90%;
+}
+.lib4ri-trend-down::before {
+	content: "\2198";
+	line-height: 1ex;
+	font-size: 100%;
+}
+.lib4ri-recommended {
+	font-weight:400;
+	font-style: italic;
+}
+
+.OFF.csl-entry:nth-child(odd) { 
+	display: flex;
+	background-color: #f0f8f4;
+	padding: .5ex 0 .5ex .25ex;
+}
+.OFF.csl-entry:nth-child(even) {
+	display: flex;
+	background-color: #f6f8f0;
+	padding: .5ex 0 .5ex .25ex;
+}
+.OFF.csl-left-margin {
+	margin-right:1ex;
+}
+.csl-entry:nth-child(odd) { 
+	display: flex;
+	background-color: #f0f8f4;
+	padding: .5ex 0 .5ex 1.15ex;
+	background-image: url('https://upload.wikimedia.org/wikipedia/commons/3/3b/Monobook-bullet.svg');
+	background-size: 4px;
+	background-position: 0ex 0.7ex;
+	background-repeat: no-repeat;
+}
+.csl-entry:nth-child(even) {
+	display: flex;
+	background-color: #f6f8f0;
+	padding: .5ex 0 .5ex 1.15ex;
+	background-image: url('https://upload.wikimedia.org/wikipedia/commons/3/3b/Monobook-bullet.svg');
+	background-size: 4px;
+	background-position: 0ex 0.7ex;
+	background-repeat: no-repeat;
+}
+.csl-left-margin { display: none; }
+
+#lib4ri-alltab-container {
+	text-align:center;
+	width:100%;
+	background-color:#e8f8e0;
+}
+
+#lib4ri-search-container {
+	text-align: center;
+	width:100%;
+	position:relative;
+	top: 0.5ex;
+}
+
+#lib4ri-search-form-container {
+	padding: 0.5ex .5ex .5ex .5ex;
+	margin: 0.5ex .5ex .5ex .5ex;
+	background-color: #f6f6f2;
+	text-align: center;
+	width: 98.5%; 
+}
+#lib4ri-search-form-area {
+	width: 81%;
+	display: inline-block;
+	margin: auto;
+}
+.lib4ri-search-form-area {
+	width: 81%;
+	display: inline-block;
+	margin: auto;
+}
+.lib4ri-search-form-radio {
+	accent-color: #397;
+}
+#lib4ri-search-form-tab-choice {
+	display: inline;
+	white-space: nowrap;
+	font-size: 11pt;
+	line-height: 14pt;
+	vertical-align: baseline;
+}
+#lib4ri-search-form-tab-choice div {
+	display: inline-block;
+	white-space: nowrap;
+	vertical-align: baseline;
+}
+#lib4ri-search-form-hint {
+	text-align:center;
+	width: 75%;
+	display: inline-block;
+	margin: auto;
+	position: relative;
+	left: -2.7ex;
+}
+#lib4ri-search-form-term {
+	width: 75%;
+	height: 4ex;
+	position:relative;
+	left: 2.3ex;
+	z-index: 34;
+}
+#lib4ri-search-form-icon {
+	display: inline-block; 
+	width: 4ex;
+	height: 3.5ex;
+	background-image: url("https://upload.wikimedia.org/wikipedia/commons/4/48/Loupe.svg");
+	background-size: 3.7ex 3.5ex;
+	background-position: 0.3ex 0;
+	background-repeat: no-repeat;
+	background-color: transparent;
+	margin: .25ex 0 .25ex 0;
+	position:relative;
+	left: -2.3ex;
+	top: 1.3ex;
+	z-index: 37;
+}
+
+.lib4ri-result-container {
+	text-align: center;
+	width: 100%;
+	min-height: 640px;
+	background-color: #fCfCf8;
+	padding: 0ex 0ex 1ex 0ex;
+	border: 1ex;
+}
+
+.lib4ri-bentobox-container {
+	background-color: #f6f6f2;
+	padding: .5ex .5ex .5ex 0.75ex;
+	margin: 1ex .5ex 2ex .5ex;
+	text-align: left;
+	min-height: 10ex;
+	border: 0px solid #7a5;
+}
+.lib4ri-bentobox-result {
+	border: 1px solid #7a5;
+	padding: 0 1ex .5ex 1ex;
+}
+
+.lib4ri-bentobox-linkset {
+	border: 1px solid #7a5;
+	padding: .5ex 1ex .5ex 3ex;
+}
+.lib4ri-bentobox-center { 
+	margin: 1.25ex 0 0 0;
+}
+.lib4ri-bentobox-label {
+	font-weight: 700;
+	line-height: 4ex; 
+	color: #646860; 
+	padding: 0 0 0.5ex 3.25ex;
+}
+.lib4ri-search-anim-block {
+	display: inline-block;
+	height: 8ex;
+	padding: 2.5ex 0 0 2ex;
+}
+.lib4ri-search-anim-inline {
+	line-height: 8pt;
+	display: inline;
+	position:relative; left:1ex;
+}
+
+/* classes within html in json by search.handler.php */
+.lib4ri-bentobox-footer {
+	padding: 1ex .5ex 0.5ex 3.25ex;
+	margin: 1ex -1ex -0.5ex -1ex;
+	background-color: #ac9 !important; 
+}
+.lib4ri-bentobox-header {
+	display:none;
+}
+.lib4ri-bentobox-column-header{
+	padding-top: 5ex;
+}
+.lib4ri-bentobox-searchterm {
+	font-weight: 700;
+	font-style: italic;
+} 
+
+.lib4ri-search-col {
+	width: 31%;
+	margin: 2ex .75ex 0ex 0.75ex;
+	display: inline-block;
+	background-color: transparent;
+}
+#lib4ri-search-col-1to2 {
+	width: 63%;
+	margin: 2ex 1ex 0ex 0.75ex;
+	display: inline-block;
+	background-color: transparent;
+}
+#lib4ri-search-col-2to3 {
+	width: 63%;
+	margin: 2ex 0.75ex 0ex 1ex;
+	display: inline-block;
+	background-color: transparent;
+}
+#lib4ri-search-col-1to3 {
+	width: 96%;
+	margin: 2ex 0.75ex 0ex 0.75ex;
+	display: inline-block;
+	background-color: transparent;
+}
+
+#lib4ri-back-container {
+	width: 100%;
+	text-align: center;
+	background-color: #e8f8e0;
+	padding: 1ex 1ex 1ex 1ex;
+}
+.lib4ri-result-container {
+    -moz-border-radius-topleft: 9px;
+    -webkit-border-top-left-radius: 9px;
+    border-top-left-radius: 9px;
+    -moz-border-radius-topright: 9px;
+    -webkit-border-top-right-radius: 9px;
+    border-top-right-radius: 9px;
+    -moz-border-radius-bottomleft: 9px;
+    -webkit-border-bottom-left-radius: 9px;
+    border-bottom-left-radius: 9px;
+    -moz-border-radius-bottomright: 9px;
+    -webkit-border-bottom-right-radius: 9px;
+    border-bottom-right-radius: 9px;
+    border: 1px solid #8b6;
+	position: relative;
+	z-index: 17;
+}
+.lib4ri-search-tab {
+	font-weight: bold;
+	width: 30%;
+	display: inline-block;
+	margin: 0ex 1ex 0ex 1ex;
+	padding: 1.6ex 0 1.4ex 0; 
+    -moz-border-radius-topleft: 12px;
+    -webkit-border-top-left-radius: 12px;
+    border-top-left-radius: 12px;
+    -moz-border-radius-topright: 12px;
+    -webkit-border-top-right-radius: 12px;
+    border-top-right-radius: 12px;
+    border: 1px solid #7a5;
+    border-bottom-color: transparent !important;
+    border-bottom: 0 none !important;
+}
+.lib4ri-search-tab-on {
+	margin: 0ex 1ex 0ex 1ex;
+	padding: 1.6ex 0 1.4ex 0; 
+	border: 1px solid #8b6;
+	background-color: #fCfCf8;
+	color: #333;
+	position: relative;
+	z-index: 18;
+	top: 1px;
+}
+.lib4ri-search-tab-off {
+	margin: 1ex 1ex 0ex 1ex;
+	padding: 1.1ex 0 0.9ex 0; 
+	border: 1px solid #593;
+	background-color: #e8e8e4;
+	color: #aaa;
+	position: relative;
+	z-index: 16;
+}
+
+[id^='lib4ri-journal-title-'] {
+	font-weight: 700;
+}
+
+/* Journal / tab2  related */
+.lib4ri-journal-container {
+	text-align: center;
+	width: 100%;
+	background-color: #fCfCf8;
+	padding: 0ex 0ex 0ex 0ex;
+	border: 1px solid #7a5;
+
+}
+.lib4ri-journal-area-top {
+    border-top: 1px solid #ccc;
+	width: 100%;
+	padding: 1ex 0ex 1ex 0ex;
+	text-align: left;
+}
+.lib4ri-journal-area:nth-child(odd) { 
+	background-color: #f0f8f4;
+}
+.lib4ri-journal-area:nth-child(even) {
+	background-color: #f6f8f0;
+}
+.lib4ri-journal-area-info {
+	text-align: left;
+	width: 100%;
+	padding: 0ex 0ex 1ex 0ex;
+	text-align: left;
+}
+.lib4ri-journal-area-toggle-link {
+	font-weight:700;
+	font-size:3.5ex;
+	text-decoration:none;
+	outline: 0;
+	border: 0;
+	line-height: 8pt;
+	position: relative; top:0.5ex; left:0.5ex;
+}
+.lib4ri-journal-area-col {
+	width: 47%;
+	margin: 0ex 1.0ex 0ex 1.0ex;
+	display: inline-block;
+	background-color: transparent;
+}
+.lib4ri-journal-area-col-data {
+	padding: 0.25ex 1ex .25ex 1ex;
+}
+.lib4ri-journal-linklist{
+	white-space: nowrap;
+}
+
+.lib4ri-journal-area-publicnote {
+	display: none;
+}
+
+
+
+/* Smartphone Tunings */
+@media screen and (max-width: 1090px) {
+
+	body {
+		font-family: calibri,sans-serif;
+		font-size: 12pt;
+		line-height: 15pt;
+		color: #333;
+		width: 97%;
+		margin-left:0%;
+		margin-right:3%;
+	}
+
+	.layout-container { max-width: revert; }
+	   
+	#lib4ri-search-form-area {
+		width: 80%;
+		display: inline-block;
+		margin: auto;
+	}
+	#lib4ri-search-form-hint {
+		text-align: center;
+		width: 80%;
+		display: inline-block;
+		margin: auto;
+	}
+	.lib4ri-bentobox-container {
+		width: 97.5%; 
+		border: 1px solid #7a5;
+	}
+	.lib4ri-search-col {
+		width: 100%; 
+	}
+	#lib4ri-search-col-1to2,
+	#lib4ri-search-col-2to3 {
+		width: 100%; 
+	}
+	.lib4ri-search-tab-5,
+	.lib4ri-search-tab-4,
+	.lib4ri-search-tab-3,
+	.lib4ri-search-tab-2,
+	.lib4ri-search-tab-1 {
+		width: 90%; 
+	}
+	.lib4ri-search-tab-off {
+		margin: 0.1ex 1ex 0.4ex 1ex !important;
+		padding: 1.3ex 0 1.2ex 0 !important;
+		border: 1px solid #583;
+		background-color: #e8e8e4;
+		color: #aaa;
+		position: relative;
+		z-index: 16;
+	}
+	.lib4ri-search-tab-on {
+		margin: 0ex 1ex 0.5ex 1ex !important;
+		padding: 1.3ex 0 1.2ex 0 !important;
+		border: 1px solid #8b6;
+		background-color: #fCfCf8;
+		color: #333;
+		position: relative;
+		z-index: 18;
+	}
+	.lib4ri-search-tab {
+		font-weight: bold;
+		width: 67%;
+		display: inline-block;
+		-moz-border-radius-topleft: 12px;
+		-webkit-border-top-left-radius: 12px;
+		border-top-left-radius: 12px;
+		-moz-border-radius-topright: 12px;
+		-webkit-border-top-right-radius: 12px;
+		-moz-border-radius-bottomleft: 12px;
+		-webkit-border-bottom-left-radius: 12px;
+		border-bottom-left-radius: 12px;
+		-moz-border-radius-bottomright: 12px;
+		-webkit-border-bottom-right-radius: 12px;
+		border-bottom-right-radius: 12px;
+		border: 1px solid #7a5 !important;
+	}
+
+	.lib4ri-journal-area-col {
+		width: 80%; 
+	}
+}
+
