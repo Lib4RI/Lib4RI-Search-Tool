@@ -107,15 +107,6 @@ switch ( $apiName ) {
 		$_GET['scope'] = null;
 		$getJsonAPI = new apiQueryScopus();
 		break;
-	case 'slsp':	/* legacy support */
-		$getJsonAPI = new apiQuerySLSP( $scopeTmp );
-		break;
-	case 'swisscovery':	/* new name */
-		$getJsonAPI = new apiQuerySLSP( $scopeTmp );
-		break;
-	case 'journal':
-		$getJsonAPI = new apiQueryJournal( $scopeTmp );
-		break;
 	case 'dora':
 		$getJsonAPI = new apiQueryDORA( $scopeTmp );
 		break;
@@ -280,17 +271,23 @@ if ( $numFound == 1 ) {
 
 // Special case:
 if ( $apiHost == 'slsp' && $getJsonAPI->apiName == 'book' && $getJsonAPI->apiScope == "myinstitution" ) {
-	$apiObjAux = new apiQueryBook('national');
-	$jsonAux = $apiObjAux->queryNow();
-	if ( $numAux = intval( websearch_json_value_by_path( json_decode($jsonAux,true), $metaMap['citeproc'][$apiHost]['_numFound'] ) ) ) {
-		$htmlAry['footer'] .= '<br><br>Extend search to Swiss libraries via&nbsp;' . $apiObjAux->apiLabel . ':';
-		$htmlAry['footer'] .= '<br>See <a href="' . $apiObjAux->webUrl() . '" target="_blank">all ' . $numAux . ' results</a>';
+	$apiObjNatio = new apiQueryBook('national');
+	$jsonTmp = $apiObjNatio->queryNow();
+	$numNatio = intval( websearch_json_value_by_path( json_decode($jsonTmp,true), $metaMap['citeproc'][$apiHost]['_numFound'] ) );
+	$apiObjDisco = new apiQueryBook('discovery');
+	$jsonTmp = $apiObjDisco->queryNow();
+	$numDisco = intval( websearch_json_value_by_path( json_decode($jsonTmp,true), $metaMap['citeproc'][$apiHost]['_numFound'] ) );
+	$htmlAry['footer'] .= '<br><br>';
+	if ( $numNatio || $numDisco ) {
+		$htmlAry['footer'] .= 'Extend search via ' . $getJsonAPI->apiLabel . ': ';
 	} else {
-		$htmlAry['footer'] .= '<br><br><a href="' . $apiObjAux->webUrl() . '" target="_blank">No results found</a> ';
-		$htmlAry['footer'] .= 'when extending search<br>to Swiss libraries via&nbsp;' . $apiObjAux->apiLabel . ( $isDev ? '...&#128533;' : '.' );
+		$htmlAry['footer'] .= ( $numFound ? 'Ext' : 'Also ext' ) . 'ending search via ' . $getJsonAPI->apiLabel . ' may not be successful: ' . ( $isDev ? '&#128533;' : '.' );
 	}
+	$htmlAry['footer'] .= ' <ul class="lib4ri-ul-flat">';
+	$htmlAry['footer'] .= '<li class="lib4ri-li-wide"><a href="' . $apiObjDisco->webUrl() . '" target="_blank">' . $numDisco . ' result' . ( $numDisco == 1 ? '' : 's' ) . '</a> in all libraries</li>';
+	$htmlAry['footer'] .= '<li class="lib4ri-li-wide"><a href="' . $apiObjNatio->webUrl() . '" target="_blank">' . $numNatio . ' result' . ( $numNatio == 1 ? '' : 's' ) . '</a> including book chapters</li>';
+	$htmlAry['footer'] .= '</ul>';
 }
-
 
 
 

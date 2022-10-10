@@ -339,7 +339,102 @@ class apiQueryLib4ri extends apiQueryUtils
 	}
 }
 
-// -----------------------------------------------------------------------------------
+class apiQuerySLSP extends apiQueryUtils
+{
+	public function __construct($apiLabel)
+	{
+		parent::__construct($apiLabel);
+		$this->setupParam();
+	}
+
+	public function getQueryField($searchTerm = '', $qField = '')
+	{
+		if ( $qField != 'any' ) { // with 'any' no real need to detect ISSN/ISBN !(?)
+			$ary = [];
+			$searchTerm = strtr($searchTerm,'[{(;:._)}]','||||||||||');	// accepted word/number limiters
+			$searchTerm = preg_replace('/[^\w|^\d]/','',$searchTerm); // to only have 0-9 or a-z, space-less
+			preg_match('/^\d+/',$searchTerm,$ary);
+			if ( @strlen($ary[0]) > 6 ) {
+				if ( strlen($ary[0]) > 9 ) {
+					return 'isbn'; // ISBN10 or ISBN13
+				}
+				if ( strlen($ary[0]) > 7 ) {
+					return 'issn'; // ISSN like 0123-4567
+				}
+				if ( strtoupper(substr($searchTerm,7,1)) == 'X' ) {
+					return 'issn'; // ISSN like 0123-789X
+				}
+			}
+		}
+		return ( empty($qField) ? 'any' : $qField );
+	}
+}
+
+// ==================================================================================
+
+
+class apiQueryDORA extends apiQueryLib4ri
+{
+	// see https://www.wiki.lib4ri.ch/display/HEL/Technical+details+of+DORA
+
+	public $apiSolrSimple;
+
+	public function __construct($apiInstitute)
+	{
+		if ( !empty($apiInstitute) ) {
+			$this->apiScope = $apiInstitute;
+		}
+		$this->apiLabel = 'DORA' . ( empty($this->apiScope) ? '' : '/'.( strlen($this->apiScope) < 4 ? strtoupper($this->apiScope) : ucFirst(strtolower($this->apiScope)) ) );
+		$this->apiKey = '';
+		$this->apiSolrSimple = 'mods_titleInfo_title_mt^5 mods_abstract_ms^2 dc.creator^2 mods_extension_originalAuthorList_mt^2 dc.contributor^1 dc.type^1 catch_all_MODS_mt^1';
+		parent::__construct($this->apiLabel);
+	}
+
+	public function buildQuery($searchTermEnc = '')
+	{
+		$searchQuery = 'dc.title:' . ( empty($searchTermEnc) ? '*' : '('.$searchTermEnc.')' ); // aux
+		if ( @!empty($this->apiSolrSimple) ) {
+			$searchQuery = str_replace(' ','%20OR%20',preg_replace('/\s/',' ',$this->apiSolrSimple));
+			$searchQuery = implode(':'.( empty($searchTermEnc) ? '*' : '('.$searchTermEnc.')' ).'^',explode('^',$searchQuery));
+		}
+		return $searchQuery;
+	}
+	
+	public function apiUrl($searchTerm = '', $searchOffset = -1)
+	{
+		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
+		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
+		$searchTermEnc = rawurlencode($searchTerm);
+		if ( strpos($searchTermEnc,'%20') ) {
+			$searchTermEnc = '(' . $searchTermEnc . ')';		// in DORA we need brackets for multiple search terms!
+		}
+		// to get the citiation of a given amount of pids:
+		$apiUrl = 'https://www.dora.lib4ri.ch/' . ( empty($this->apiScope) ? '' : strtolower($this->apiScope).'/' );
+	//	$apiUrl .= 'islandora/search/json_meta/PID:' . ( empty($this->apiScope) ? '*' : strtolower($this->apiScope).'%5c%3a*' );
+	//	$apiUrl .= '?limit=' . $this->searchLimit . '&f[3]=' . $this->buildQuery($searchTermEnc);
+		$apiUrl .= 'islandora/search/json_meta/' . $this->buildQuery($searchTermEnc) . '?limit=' . $this->searchLimit . '&offset=' . $searchOffset;
+		return $apiUrl;
+		// for example:
+		// https://www.dora-dev.lib4ri.ch/eawag/islandora/search/json_meta/PID:eawag%5c%3a*?limit=20&f[2]=mods_titleInfo_title_mt:(hydro)^5%20OR%20mods_abstract_ms:(hydro)^2%20OR%20dc.creator:(hydro)^2%20OR%20mods_extension_originalAuthorList_mt:(hydro)^2%20OR%20dc.contributor:(hydro)^1%20OR%20dc.type:(hydro)^1%20OR%20catch_all_MODS_mt:(hydro)^1%20OR%20PID_et:(hydro)^7
+	}
+
+	public function webUrl($searchTerm = '', $searchOffset = -1)
+	{
+		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
+		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
+		$searchTermEnc = rawurlencode($searchTerm);
+		if ( strpos($searchTermEnc,'%20') ) {
+			$searchTermEnc = '(' . $searchTermEnc . ')';		// in DORA we need brackets for multiple search terms!
+		}
+		$webUrl = 'https://www.dora.lib4ri.ch/' . ( empty($this->apiScope) ? '' : strtolower($this->apiScope).'/' );
+		$webUrl .= 'islandora/search/' . $this->buildQuery($searchTermEnc) . '?search_string=' . $searchTermEnc . '&extension=false';
+		$webUrl .= '&limit=' . $this->searchLimit . '&offset=' . $searchOffset;		// supported already!?
+		return $webUrl;
+		//	for example:
+		//	https://www.dora.lib4ri.ch/eawag/islandora/search/mods_titleInfo_title_mt:%28hydro%29%5E5%20OR%20mods_abstract_ms:%28hydro%29%5E2%20OR%20dc.creator:%28hydro%29%5E2%20OR%20mods_extension_originalAuthorList_mt:%28hydro%29%5E2%20OR%20dc.contributor:%28hydro%29%5E1%20OR%20dc.type:%28hydro%29%5E1%20OR%20catch_all_MODS_mt:%28hydro%29%5E1%20OR%20PID_et:%28hydro%29%5E7?search_string=hydro&extension=false
+	}
+}
+
 
 class apiQueryWoS extends apiQueryLib4ri
 {
@@ -404,7 +499,7 @@ class apiQueryWoS extends apiQueryLib4ri
 
 	public function webUrl($searchTerm = '', $searchOffset = -1)
 	{
-		// $searchOffset = ... 	<== offset handling unknown for web links
+		// $searchOffset = ...	<== offset handling unknown for web links
 		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
 		$searchTermEnc = rawurlencode($searchTerm);
 		return str_replace('###',$searchTermEnc,'https://www.webofscience.com/wos/woscc/general-summary?query=ALL%3d(###)');
@@ -431,7 +526,7 @@ class apiQueryScopus extends apiQueryLib4ri
 		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
 		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
 		$searchTermEnc = rawurlencode($searchTerm);
-		$apiUrl = 'https://api.elsevier.com/content/search/scopus?query=ALL(' . $searchTermEnc . ')';
+		$apiUrl = 'https://api.elsevier.com/content/search/scopus?query=TITLE-ABS-KEY-AUTH(' . $searchTermEnc . ')';
 		// $apiUrl .= '&APIKey=' . $this->apiKey; // would work, but not required, since set up via header currently (safer?)
 		return ( $apiUrl . '&count=' . $this->searchLimit . '&start=' . $searchOffset . '&httpAccept=application/json' );
 		// for example:
@@ -444,15 +539,16 @@ class apiQueryScopus extends apiQueryLib4ri
 		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset ) + 1;	// +1, see/test example link!
 		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
 		$searchTermEnc = rawurlencode($searchTerm);
-		$webUrl = 'https://www.scopus.com/results/results.uri?src=s&st1=' . $searchTermEnc . '&sot=b&s=ALL(' . $searchTermEnc . ')';
+		$webUrl = 'https://www.scopus.com/results/results.uri?src=s&st1=' . $searchTermEnc . '&sot=b&s=TITLE-ABS-KEY-AUTH(' . $searchTermEnc . ')';
 		return( $webUrl . '&cc=' . $this->searchLimit . '&offset=' . $searchOffset . '&sid=new' );
 		// for example:
 		// https://www.scopus.com/results/results.uri?src=s&searchterm1=Filtration&sot=b&s=TITLE-ABS-KEY-AUTH(Filtration)&sid=new&cc=50&offset=51
-		// https://www.scopus.com/results/results.uri?src=s&searchterm1=Filtration&sot=b&s=TITLE-ABS-KEY-AUTH(Filtration)&sid=new&cc=50&offset=51
+		// https://www.scopus.com/results/results.uri?src=s&searchterm1=Filtration&sot=b&s=ALL(Filtration)&sid=new&cc=50&offset=51
 	}
 }
 
-class apiQuerySLSP extends apiQueryLib4ri
+
+class apiQuerySwisscovery extends apiQuerySLSP
 {
 	// see https://developers.exlibrisgroup.com/blog/understanding-and-using-the-primo-search-api-as-a-guest-in-the-developer-network/
 
@@ -516,16 +612,6 @@ class apiQuerySLSP extends apiQueryLib4ri
 		parent::__construct($this->apiLabel);
 	}
 
-	public function getQueryField($searchTerm = '', $qField = 'any')
-	{
-		if ( $searchTerm = @strtoupper(trim(urldecode($searchTerm))) ) {
-			$ary = array();
-			preg_match('/\d{4}\s*\-*\s*\d{4}|\d{4}\s*\-*\s*\d{3}X/',$searchTerm,$ary);
-			return ( @intval($ary[0]) ? 'issn' : $qField );
-		}
-		return $qField;
-	}
-
 	public function apiUrl($searchTerm = '', $searchOffset = -1)
 	{
 		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
@@ -640,7 +726,7 @@ class apiQuerySLSP extends apiQueryLib4ri
 	}
 }
 
-class apiQueryBook extends apiQueryLib4ri
+class apiQueryBook extends apiQuerySLSP
 {
 	// see https://developers.exlibrisgroup.com/blog/understanding-and-using-the-primo-search-api-as-a-guest-in-the-developer-network/
 
@@ -659,9 +745,17 @@ class apiQueryBook extends apiQueryLib4ri
 				'national' => array(
 					'scope' => 'DN_and_CI',
 					'tab' =>  '41SLSP_LIB_DN_CI',
-					'label' => 'All Libraries',
-					'rtype' => 'exclude:journals;articles;newspaper_articles',
-					'exclude:articles;journals;workingpaper;newsletterarticle;reviews;standards;newspaper_articles',
+					'label' => 'All Libraries',	/* = 'swisscovery' */
+					'rtype' => 'exclude:articles;newsletterarticle;journals;workingpaper;reviews;standards;newspaper_articles',
+				),
+			);
+		} elseif ( stripos('/discovery/',$apiSearchScope) ) {	// special case for non-lib4ri search across all libraries
+			$this->apiCatAry = array(
+				'discovery' => array(
+					'scope' => 'DiscoveryNetwork',
+					'tab' =>  'DN',
+					'label' => 'swisscovery without CDI',
+					'rtype' => 'exclude:articles;newsletterarticle;journals;workingpaper;reviews;standards;newspaper_articles',
 				),
 			);
 		} else {
@@ -670,7 +764,7 @@ class apiQueryBook extends apiQueryLib4ri
 					'scope' => 'MyInstitution',
 					'tab' =>  'LibraryCatalog' /* '41SLSP_LIB_DN_CI'	*/,
 					'label' => 'Lib4RI',
-					'rtype' => 'exclude:articles;journals;workingpaper;newsletterarticle;reviews;standards;newspaper_articles',
+					'rtype' => 'exclude:journals;articles;newsletterarticle;workingpaper;reviews;standards;newspaper_articles',
 				),
 				'centralindex' => array(
 					'scope' => 'CentralIndex',
@@ -699,16 +793,6 @@ class apiQueryBook extends apiQueryLib4ri
 		parent::__construct($this->apiLabel);
 	}
 
-	public function getQueryField($searchTerm = '', $qField = 'any')
-	{
-		if ( $searchTerm = @strtoupper(trim(urldecode($searchTerm))) ) {
-			$ary = array();
-			preg_match('/\d{4}\s*\-*\s*\d{4}|\d{4}\s*\-*\s*\d{3}X/',$searchTerm,$ary);
-			return ( @intval($ary[0]) ? 'issn' : $qField );
-		}
-		return $qField;
-	}
-
 	public function apiUrl($searchTerm = '', $searchOffset = -1)
 	{
 		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
@@ -823,7 +907,7 @@ class apiQueryBook extends apiQueryLib4ri
 	}
 }
 
-class apiQueryJournal extends apiQueryUtils
+class apiQueryJournal extends apiQuerySLSP
 {
 	// see https://developers.exlibrisgroup.com/blog/understanding-and-using-the-primo-search-api-as-a-guest-in-the-developer-network/
 
@@ -857,16 +941,6 @@ class apiQueryJournal extends apiQueryUtils
 		$this->apiScope = 'MyInstitution'; // = 'DN_and_CI';		// determines which one to use from apiCatAry
 
 		parent::__construct($this->apiLabel);
-	}
-	
-	public function getQueryField($searchTerm = '', $qField = 'any')
-	{
-		if ( $searchTerm = @strtoupper(trim(urldecode($searchTerm))) ) {
-			$ary = array();
-			preg_match('/\d{4}\s*\-*\s*\d{4}|\d{4}\s*\-*\s*\d{3}X/',$searchTerm,$ary);
-			return ( @intval($ary[0]) ? 'issn' : $qField );
-		}
-		return $qField;
 	}
 
 	public function apiUrl($searchTerm = '', $searchOffset = -1)
@@ -977,74 +1051,6 @@ class apiQueryJournal extends apiQueryUtils
 		return $webUrl;
 		// for example:
 		// https://lib4ri.swisscovery.slsp.ch/discovery/jsearch?query=title,contains,Hydrogen&tab=jsearch_slot&vid=41SLSP_LIB:GO&offset=0&journals=title,Hydrogen
-	}
-}
-
-
-
-
-
-
-
-class apiQueryDORA extends apiQueryLib4ri
-{
-	// see https://www.wiki.lib4ri.ch/display/HEL/Technical+details+of+DORA
-
-	public $apiSolrSimple;
-
-	public function __construct($apiInstitute)
-	{
-		if ( !empty($apiInstitute) ) {
-			$this->apiScope = $apiInstitute;
-		}
-		$this->apiLabel = 'DORA' . ( empty($this->apiScope) ? '' : '/'.( strlen($this->apiScope) < 4 ? strtoupper($this->apiScope) : ucFirst(strtolower($this->apiScope)) ) );
-		$this->apiKey = '';
-		$this->apiSolrSimple = 'mods_titleInfo_title_mt^5 mods_abstract_ms^2 dc.creator^2 mods_extension_originalAuthorList_mt^2 dc.contributor^1 dc.type^1 catch_all_MODS_mt^1';
-		parent::__construct($this->apiLabel);
-	}
-
-	public function buildQuery($searchTermEnc = '')
-	{
-		$searchQuery = 'dc.title:' . ( empty($searchTermEnc) ? '*' : '('.$searchTermEnc.')' ); // aux
-		if ( @!empty($this->apiSolrSimple) ) {
-			$searchQuery = str_replace(' ','%20OR%20',preg_replace('/\s/',' ',$this->apiSolrSimple));
-			$searchQuery = implode(':'.( empty($searchTermEnc) ? '*' : '('.$searchTermEnc.')' ).'^',explode('^',$searchQuery));
-		}
-		return $searchQuery;
-	}
-	
-	public function apiUrl($searchTerm = '', $searchOffset = -1)
-	{
-		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
-		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
-		$searchTermEnc = rawurlencode($searchTerm);
-		if ( strpos($searchTermEnc,'%20') ) {
-			$searchTermEnc = '(' . $searchTermEnc . ')';		// in DORA we need brackets for multiple search terms!
-		}
-		// to get the citiation of a given amount of pids:
-		$apiUrl = 'https://www.dora.lib4ri.ch/' . ( empty($this->apiScope) ? '' : strtolower($this->apiScope).'/' );
-	//	$apiUrl .= 'islandora/search/json_meta/PID:' . ( empty($this->apiScope) ? '*' : strtolower($this->apiScope).'%5c%3a*' );
-	//	$apiUrl .= '?limit=' . $this->searchLimit . '&f[3]=' . $this->buildQuery($searchTermEnc);
-		$apiUrl .= 'islandora/search/json_meta/' . $this->buildQuery($searchTermEnc) . '?limit=' . $this->searchLimit . '&offset=' . $searchOffset;
-		return $apiUrl;
-		// for example:
-		// https://www.dora-dev.lib4ri.ch/eawag/islandora/search/json_meta/PID:eawag%5c%3a*?limit=20&f[2]=mods_titleInfo_title_mt:(hydro)^5%20OR%20mods_abstract_ms:(hydro)^2%20OR%20dc.creator:(hydro)^2%20OR%20mods_extension_originalAuthorList_mt:(hydro)^2%20OR%20dc.contributor:(hydro)^1%20OR%20dc.type:(hydro)^1%20OR%20catch_all_MODS_mt:(hydro)^1%20OR%20PID_et:(hydro)^7
-	}
-
-	public function webUrl($searchTerm = '', $searchOffset = -1)
-	{
-		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
-		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
-		$searchTermEnc = rawurlencode($searchTerm);
-		if ( strpos($searchTermEnc,'%20') ) {
-			$searchTermEnc = '(' . $searchTermEnc . ')';		// in DORA we need brackets for multiple search terms!
-		}
-		$webUrl = 'https://www.dora.lib4ri.ch/' . ( empty($this->apiScope) ? '' : strtolower($this->apiScope).'/' );
-		$webUrl .= 'islandora/search/' . $this->buildQuery($searchTermEnc) . '?search_string=' . $searchTermEnc . '&extension=false';
-		$webUrl .= '&limit=' . $this->searchLimit . '&offset=' . $searchOffset;		// supported already!?
-		return $webUrl;
-		//	for example:
-		//	https://www.dora.lib4ri.ch/eawag/islandora/search/mods_titleInfo_title_mt:%28hydro%29%5E5%20OR%20mods_abstract_ms:%28hydro%29%5E2%20OR%20dc.creator:%28hydro%29%5E2%20OR%20mods_extension_originalAuthorList_mt:%28hydro%29%5E2%20OR%20dc.contributor:%28hydro%29%5E1%20OR%20dc.type:%28hydro%29%5E1%20OR%20catch_all_MODS_mt:%28hydro%29%5E1%20OR%20PID_et:%28hydro%29%5E7?search_string=hydro&extension=false
 	}
 }
 

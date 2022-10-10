@@ -307,7 +307,7 @@ if ( typeof(lib4riSearchPerform) != 'function' ) {
 					if ( jsonData['total-found'] != undefined && jsonData['total-found'] > 0 ) {
 						if ( lib4riSearchTabHistory[0] == 2 && apiArgStr.concat('&').indexOf('api=journal&') > 0 ) {
 							let bbElemAry = document.getElementsByClassName('lib4ri-journal-area-toggle-link');
-							for (b=Math.max(searchOffset,0);b<bbElemAry.length;b++) {
+							for ( b=Math.max(searchOffset,0);b<bbElemAry.length;b++ ) {
 								let idToggle = bbElemAry[b].id;		// for example: lib4ri-journal-area-toggle-12345
 								let dataTmp = bbElemAry[b].getAttribute('onclick');	// = "javascript:lib4riJournalAreaToggle(this.id,'2673-4141','99116818663005522');"
 								if ( idToggle && dataTmp && dataTmp.indexOf(',') ) {
@@ -316,7 +316,14 @@ if ( typeof(lib4riSearchPerform) != 'function' ) {
 									let dataAry = dataTmp.split("'");
 									setTimeout( function() {
 										lib4riSearchJournalDetail( dataAry[1], dataAry[3], 'swisscovery', 'available,linklist', idBase, idArea );
-									}, (300 * (b - searchOffset ) + 150) );
+									}, (300 * (b + Math.max(searchOffset,0) ) + 150) );
+								}
+								if ( searchOffset < 1 && bbElemAry.length == 1 ) {
+									// Unfold automatically with only one journal area, in conjunction with 'Unfold All'
+									setTimeout( function() {
+										let bbElem = document.getElementById(idToggle);
+										if ( bbElem ) { bbElem.click(); }
+									}, (300 * (b + Math.max(searchOffset,0) ) + 600) );
 								}
 							}
 						}
@@ -543,7 +550,8 @@ if ( typeof(lib4riSearchTabToggle) != 'function' ) {
 						bbElemAry[b].id = idToggle;
 						setTimeout( function() {
 							let bbElem = document.getElementById(idToggle);
-							if ( bbElem ) { 
+							// Only show the toggle link if there will be more than 1 result (since with we auto-unfold a sole one):
+							if ( bbElem && document.getElementsByClassName('lib4ri-journal-area').length != 1 ) { 
 								bbElem.innerHTML = '<div style="display:inline-block; width:50%; text-align:left; font-weight:700;">Journal List</div>';
 								bbElem.innerHTML += '<div style="display:inline-block; width:47%; text-align:right;"><a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaShowAll()" style="font-style:italic; font-weight:400;">unfold all</a></div>';
 							}

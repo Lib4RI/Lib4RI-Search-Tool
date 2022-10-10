@@ -32,6 +32,42 @@ class apiQueryUtilsIssn extends apiQueryUtils
 			$this->issnAry = array_map( array($this,'cleanIssn'), array_values($ary[0]) );
 		}
 	}
+	
+	/*
+		Will turn an array with CC licenses into a sting/list where 'CC BY' will get at LibRI recommendation hint.
+		So for CC BY we add 'recommended', for example:
+			intput: [ 'CC BY 3.0' , 'CC BY-ND' ]
+			output: "CC BY 3.0 (recomended!) or CC BY-ND"
+		Also multiple redundant values will be filtered. No lower/upper case changes so far.
+	*/
+	public function addLib4riLicReco($licAry = null, $licSep = '')	/* will turn array with CC licenses into a term with LibRI recommendation */
+	{
+		if ( is_array($licAry) ) {
+			$licAry = array_map('strip_tags',$licAry);
+		} else { /* let's assume a string */
+			$licAry = explode( ',', preg_replace('/\s+/',' ',str_replace([' or ',' / '],[',',','],strip_tags($licAry))) );
+		}
+		$licAry = array_filter( array_map('trim',$licAry) );
+		$htmlAry = [];
+		foreach( $licAry as $lic ) { // similar as array_unique() would do, just case-INsensitive
+			$htmlAry[strtoupper($lic)] = $lic;
+		}
+		// Tune even for chaotic input like "CC BY 3.0, CC BY (4.0) or CC BY-ND":
+		foreach( $htmlAry as $idx => $lic ) {
+			$htmlAry[$idx] = '<span style="white-space:nowrap;">' . $lic . '</span>';
+			if ( sizeof($htmlAry) > 1 && substr($lic.' ',0,6) == 'CC BY ' ) { // adding 1 space just for processing help
+				if ( strlen($lic) < 6 || substr($lic.' ',6,1) == '(' || intval(substr($lic.' ',6,1)) ) {
+					$htmlAry[$idx] .= ' (<a href="https://oaspa.org/why-cc-by/" target="_blank" title="Recommended by Lib4RI">';
+					$htmlAry[$idx] .= '<span class="lib4ri-recommended">recommended</span></a>)';
+				}
+			}
+		}
+		if ( !empty($licSep) || sizeof($htmlAry) < 2 ) {
+			return implode( $licSep, $htmlAry );
+		}
+		return implode(', ', array_slice($htmlAry,0,-1) ) . ' or ' . array_pop($htmlAry);
+	}
+
 }
 
 
@@ -208,11 +244,11 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 	public $returnAry = array();
 	public $ccLinkAry = array(
 		'cc' => 'https://creativecommons.org/licenses/',
-		'cc-by' => 'https://creativecommons.org/licenses/by/4.0/',
-		'cc-by-nc' => 'https://creativecommons.org/licenses/by-nc/4.0/',
-		'cc-by-nd' => 'https://creativecommons.org/licenses/by-nd/4.0/',
-		'cc-by-nc-nd' => 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
-		'cc-by-nd-nc' => 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+		'cc by' => 'https://creativecommons.org/licenses/by/4.0/',
+		'cc by-nc' => 'https://creativecommons.org/licenses/by-nc/4.0/',
+		'cc by-nd' => 'https://creativecommons.org/licenses/by-nd/4.0/',
+		'cc by-nc-nd' => 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+		'cc by-nd-nc' => 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
 	);
 
 
@@ -412,22 +448,8 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 				}
 				$ary[strtoupper($idx)] = ( @empty($url) ? $lic['type'] : ( '<a href="' . $url . '" target="_blank">' . $lic['type'] . '</a>' ) );
 			}
-			if ( sizeof($ary) > 1 ) {
-				$tmp = 'Recommended by Lib4RI';		// for CC BY we add 'recommended'
-				foreach( $ary as $idx => $lic ) {
-					if ( $idx != 'CC BY' ) { continue; }
-
-					if ( substr($lic,0,3) == '<a ' ) {
-						$ary[$idx] = substr($lic,0,3) . 'title="' . $tmp . '"' . substr($lic,2) . ' <span title="' . $tmp . '"> <span class="lib4ri-recommended">recommended</span></span>';
-					} else {
-						$ary[$idx] = '<span title="' . $tmp . '">' . $lic . ' <span class="lib4ri-recommended">recommended</span></span>';
-					}
-				}
-			}
 			if ( sizeof($ary) ) {
-				$markup = implode(' or ',$ary) . ' license' /* . ( sizeof($ary) == 1 ? '' : 's' ) */ ;
-			} else {
-				$markup = '<!-- No license information available -->';
+				$markup = 'License: ' . $this->addLib4riLicReco($ary);
 			}
 			$this->updateReturnHtml($detailName,$markup,$apiPrio);
 		}
@@ -458,7 +480,8 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 		//	$markup = '<a href="' . 'https://www.doaj.org/toc/' . ( empty($apiAux->eIssn) ? $apiAux->pIssn : $apiAux->eIssn ) . '" target="_blank">' . $markup . '</a>';
 			$markup .= ' (<a href="' . 'https://www.doaj.org/toc/' . ( empty($apiAux->eIssn) ? $apiAux->pIssn : $apiAux->eIssn ) . '" target="_blank">details</a>)';
 			$limitAry = array( 2300, 2600 );		// to be made configurable!? Also '2500' mentioned below!?
-			$chfAry = array();
+			$apcAry = [];	// for array( currency => array( price1, price2, ... ) )
+			$chfAry = []; 
 			$detAry = array( 'APC status unknown' );
 			$tmp = strtolower( @trim($jourData['bibjson']['apc']['has_apc']) );	// can be 'no', 'none', 'true', 'yes' OR evaluated false
 			if ( empty($tmp) && @isset($jourData['bibjson']['apc']) ) {
@@ -472,11 +495,11 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 					// special case, the 'max' index implies a range!?
 					$cur = @trim( $jourData['bibjson']['apc']['max'][0]['currency'] );
 					$val = @intval( $jourData['bibjson']['apc']['max'][0]['price'] );
+					$apcAry[$cur] = array( 0, $val );
 					$exRate = @floatval( $this->exchangeRate( $cur ) );
 					$chfAry[0] = round($val * $exRate);
 					$detAry[0] .= ', up to ' . $this->exchangeFormat( $cur, $val, $exRate );
 				} elseif ( $tmp > 0 ) {	// for a single price or a price range like '1250-2500 EUR'
-					$apcAry = array( /* currency => array( price1, price2, ... ) */ );
 					// we have to deal with e.g.
 					// - $jourData['bibjson']['apc']['max'][0]['price']
 					// - $jourData['bibjson']['apc']['max'][0]['currency']
@@ -488,7 +511,7 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 						}
 					}
 					foreach( $apcAry as $cur => $ary ) {
-						if ( !empty($cur) /* = currency */ ) {
+						if ( !empty($cur) ) { // no currency!?
 							sort($ary);
 							$exRate = @floatval( $this->exchangeRate( $cur ) );
 							$chfAry[0] = round( $ary[0] * $exRate);
@@ -505,20 +528,24 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 					}
 				}
 			}
+
 			if ( $tmp = @trim( $jourData['bibjson']['apc']['url']) ) {
 				$detAry[0] .= ' (<a href="' . $tmp . '" target="_blank">details</a>)';
 			}
-		//	else { $detAry[0] = rtrim( $detAry[0], ".,;: \r\t\n\v\x00"); }
 
-			if ( sizeof($chfAry) ) {
+			if ( sizeof($apcAry) || sizeof($chfAry) ) { // 2022-10-04: simple approach only:
+		/*	
 				$val = @intval($chfAry[1]);
 				if ( ( $val && $val < $limitAry[1] ) || ( $chfAry[0] < $limitAry[1] ) ) {
 					$tmp = '<a href="https://www.lib4ri.ch/services/open-access/open-access-fund.html" target="_blank">' . 'check Lib4RI Fund' . '</a>';
 					if ( !empty($val) || $chfAry[0] > $limitAry[0] ) {
-						$tmp .= ' (if &lt; CHF 2500)';
+						$tmp .= ' (if APC &lt; CHF 2500)';
 					}
 					$detAry[] = $tmp;
 				}
+		*/
+				$tmp = '<a href="https://www.lib4ri.ch/services/open-access/open-access-fund.html" target="_blank">' . 'check Lib4RI Fund' . '</a>';
+				$detAry[] = $tmp . ' (if APC &lt; CHF 2500)';
 			}
 
 			$ary = [];
@@ -530,22 +557,8 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 				}		*/
 				$ary[strtoupper($idx)] = ( @empty($url) ? $lic['type'] : ( '<a href="' . $url . '" target="_blank">' . $lic['type'] . '</a>' ) );
 			}
-			if ( sizeof($ary) > 1 ) {
-				$tmp = 'Recommended by Lib4RI';		// for CC BY we add 'recommended'
-				foreach( $ary as $idx => $lic ) {
-					if ( $idx != 'CC BY' ) { continue; }
-		/*
-					if ( substr($lic,0,3) == '<a ' ) {
-						$ary[$idx] = substr($lic,0,3) . 'title="' . $tmp . '"' . substr($lic,2) . ' <span title="' . $tmp . '"><span class="lib4ri-recommended">recommended</span></span>';
-					} else {
-						$ary[$idx] = '<span title="' . $tmp . '">' . $lic . ' <span class="lib4ri-recommended">recommended</span></span>';
-					}
-		*/
-					$ary[$idx] = $lic . ' (<a href="https://oaspa.org/why-cc-by/" target="_blank" title="' . $tmp . '"><span class="lib4ri-recommended">recommended</span></a>)';
-				}
-			}
 			if ( sizeof($ary) ) {
-				$detAry[] = implode(' or ',$ary) . ' license' /* . ( sizeof($ary) == 1 ? '' : 's' ) */ ;
+				$detAry[] = 'License: ' . $this->addLib4riLicReco($ary);
 			}
 			$cssAux = 'style="position:relative; top:' . ( empty(trim(strip_tags($markup))) ? '-0.1' : '0.1' ) . 'em;"'; // not happy about this... - TO BE TUNED
 			$markup .= ' <ul class="lib4ri-ul-flat" ' . $cssAux . '><li class="lib4ri-li-wide">' . implode('</li><li class="lib4ri-li-wide">',$detAry) . '</li></ul><br />';
@@ -648,14 +661,17 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 			$licAry = [];
 			$licUri = '';
 			foreach( $jourData['publisher_policy'] as $pubPolicy ) {
-				foreach( $pubPolicy["permitted_oa"] as $pData ) {
+				foreach( $pubPolicy["permitted_oa"] as /* with numerical index/key */ $oaData ) {
 
-					if ( $this->askRomeoIgnored( $pData ) ) { continue; }
+					if ( $this->askRomeoIgnored( $oaData ) ) { continue; }
 
-					foreach( $pData['license'] as $pIdx => $lic ) {
-						foreach( $lic['license_phrases'] as $ary ) {
-							$licAry[strtolower($ary['phrase'])] = $ary['phrase'];
-							if ( empty($licUri) ) {
+					foreach( $oaData['license'] as $lIdx => $lAry ) {
+						foreach( $lAry['license_phrases'] as $ary ) {
+							if ( W_S_API_ROMEO_LIC_VER && @intval($lAry['version']) && !strpos($ary['phrase'],strval(intval($lAry['version']))) ) {
+								$ary['phrase'] .= (' ' . $lAry['version']); // expanding the lic. term with the version number
+							}
+							$licAry[rtrim(strtolower($ary['phrase']),'0.')] = $ary['phrase'];
+							if ( empty($licUri) ) {	// there is just one link (usually) to publisher's OA policy
 								$licUri = @trim($pubPolicy['permitted_oa']['uri']);
 							}
 						}
@@ -663,11 +679,8 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 				}
 			}
 			if ( sizeof($licAry) ) {
-				$markup = implode(', ',$licAry);
-				if ( !empty($licUri) ) {
-					$markup = '<a href="' . $licUri . '" target="_blank">' . $markup . '</a>';
-				}
-				$this->updateReturnHtml($detailName,'License: '.$markup /* , $apiPrio */ );
+				$markup = ( empty($licUri) ? 'License: ' : '<a href="' . $licUri . '" target="_blank">License</a>: ' );
+				$this->updateReturnHtml($detailName, $markup . $this->addLib4riLicReco($licAry) /* , $apiPrio */ );
 			}
 		}
 
@@ -691,87 +704,101 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 			if ( @sizeof($jourData['publisher_policy']) ) {
 				$markup = 'Green Open Access';
 				foreach( $jourData['publisher_policy'] as $pubIdx => $pubPolicy ) {
-					foreach( $pubPolicy["permitted_oa"] as $pIdx => $pData ) {
+					foreach( $pubPolicy["permitted_oa"] as /* with numerical index/key */ $oaData ) {
 
-						if ( $this->askRomeoIgnored( $pData ) ) { continue; }
+						if ( $this->askRomeoIgnored($oaData) ) { continue; }
+						
+						// special skip conditions for prerequisites:
+						if ( @sizeof($oaData['prerequisites']) ) {
+							// $oaData['prerequisites'] can have various keys: 'prerequisites' (once again), 'prerequisite_funders', 'prerequisites_phrases', ...
+							$tmp = implode( ',', array_keys($oaData['prerequisites']) );
 
-						// 2022-06-23: Do not show funder related prerequisites:
-						if ( @sizeof($pData['prerequisites']) === 1 ) {
-							$ary = array_keys( $pData['prerequisites'] );
-					//		if ( stripos($ary[0],'fund') !== false ) { continue; }	/* re-enabled 2022-07-29 */
+							// Do not show directly funding related prerequisites (updated 2022-10-04):
+							if ( stripos($tmp,'requisite_fund') || stripos($tmp,'requisites_fund') /* singluar/plural, both!? */ ) { continue; }
+						}
+
+
+						// collect some data for a mouse-over-hint, do not show them however 'directly' (as stated 2022-10-04)
+						$hint = '';	// just preparing, : but do not show obvisouly
+						if ( $num = @sizeof($oaData['location']['location_phrases']) ) {
+							$hint =  'Repository Type' . ( $num == 1 ? '' : 's' ) . ":\r\n";
+							foreach( $oaData['location']['location_phrases'] as $ary ) {
+								$hint .= '- ' . $ary['phrase'] . "\r\n";
+							}
 						}
 
 						// Version (plus License + Pre-Requsites):
-						$tmp = $pData["article_version_phrases"][0]["phrase"] . ' Version';
-						$lic = '';	// License Data
-				//		foreach( $pData["license"][0]["license_phrases"] as $ary ) {
-				//			$lic .= ( empty($lic) ? 'License: ' : ', ' ) . $ary['phrase'];
-				//		}
-						if ( @sizeof($pData['conditions']) ) { // add explicit conditions to the license
-							$lic .=  ( empty($lic) ? '' : "\r\n" ) . 'Condition' . ( sizeof($pData['conditions']) == 1 ? '' : 's' ) . ":\r\n" . implode("\r\n", array_map( function($h) { return '- '.$h; },$pData['conditions'] ) );
+						$tmp = $oaData['article_version_phrases'][0]['phrase'] . ' Version';
+						if ( @sizeof($oaData['conditions']) ) { // add explicit conditions to the license
+							$hint .=  ( empty($hint) ? '' : "\r\n" ) . 'Condition' . ( sizeof($oaData['conditions']) == 1 ? '' : 's' ) . ":\r\n" . implode("\r\n", array_map( function($h) { return '- '.$h; },$oaData['conditions'] ) );
 						}
-						if ( !( $url = @rtrim($pubPolicy['permitted_oa']['uri']) ) && !empty($lic) ) {
-							$idx = preg_replace('/\s+/',' ',trim(strtr(html_entity_decode($lic),'-',' ')));
+						if ( !( $url = @rtrim($pubPolicy['permitted_oa']['uri']) ) && !empty($hint) ) {
+							$idx = preg_replace('/\s+/',' ',trim(strtr(html_entity_decode($hint),'-',' ')));
 							$url = @strval( $this->ccLinkAry[strtolower($idx)] );
 						}
 				/*
 						if ( @!empty($url) ) {
-							$tmp = '<a href="' . $url . '" target="_blank"' . ( empty($lic) ? '>' : ' title="License: ' . $lic . '">' ) . $tmp . '</a>';
-						} elseif ( !empty($lic) ) {
-							$tmp = '<span title="' . $lic . '">' . $tmp . '</span>';
+							$tmp = '<a href="' . $url . '" target="_blank"' . ( empty($hint) ? '>' : ' title="License: ' . $hint . '">' ) . $tmp . '</a>';
+						} elseif ( !empty($hint) ) {
+							$tmp = '<span title="' . $hint . '">' . $tmp . '</span>';
 						}
 				*/
-						$tmp = '<span title="' . $lic . '">' . $tmp . '</span>';
+						$tmp = '<span title="' . $hint . '">' . $tmp . '</span>';
 						if ( @!empty($url) ) {		// 2022-06-23: Link separate!
 							$tmp .= ' (<a href="' . $url . '" target="_blank">details</a>)';
 						}
 
-						if ( @isset($pData['prerequisites']) ) {		// to store pre-requisites, check 1474-4457
-							$ary = [];
-							// take care, there are all kind of data and data structres!
-							foreach( $pData['prerequisites'] as $reqIdx => $reqAry ) {
-								if ( $reqIdx == 'prerequisites_phrases' ) {
-									foreach( $reqAry as $rAry ) {
-										$ary[] = $rAry['phrase'];
-									}
-								} elseif ( substr($reqIdx,0,13) == 'prerequisite_' ) {
-									// let's interpret the index, since there may be a diffuse data structure underneath
-									$ary[] = ucwords(strtr(substr($reqIdx,13),'_',' '));
-								}
+						if ( @sizeof($oaData['prerequisites']['prerequisites']) ) { // to store pre-requisites, check 1474-4457
+							$num = 0;
+							$ary = array_filter( array_values( $oaData['prerequisites']['prerequisites']) );
+							foreach( $ary as $req ) {
+								if ( stripos($req,'when_required_by') !== false ) { $num++; }
 							}
-							$tmp .= ( @empty($ary) ? ':' : ': <span title="Prerequisite' . ( sizeof($ary) < 2 ? ( sizeof($ary) ? ': ' : '!?' ) : "s:\r\n" ) . implode("\r\n",$ary) . '" style="color:#f71;">&#9888;</span>' );
+							if ( sizeof($ary) > $num ) { // 2022-10-04: do not show prerequisites if all prerequisites are conditional
+								$ary = array_map( function($h) { return '<li class="lib4ri-li-wide">'.$h.'</li>'; }, $ary );
+								$tmp .= 'Prerequisite' . ( sizeof($ary) == 1 ? '' : 's' ) . ': <ul class="lib4ri-ul-flat">' . implode('',$ary) . '</ul>';
+							}
 						}
 						$htmlAry = array( $tmp );
-
-						$tmp = '';	// Repository type:
-						foreach( $pData["location"]["location_phrases"]  as $ary ) {
-							if ( substr($tmp,-10) == 'Repository' && strpos($ary['phrase'],'Repository') ) {
-								$tmp = rtrim(substr($tmp,0,-10)) . '/' . $ary['phrase'];
+					/*
+						$loc = '';	// Repository location/type - 2022-10-04: do not show!
+						foreach( $oaData['location']['location_phrases'] as $ary ) {
+							if ( substr($loc,-10) == 'Repository' && strpos($ary['phrase'],'Repository') ) {
+								$loc = rtrim(substr($loc,0,-10)) . '/' . $ary['phrase'];
 							} else {
-								$tmp .= ( empty($tmp) ? '' : ', ' ) . $ary['phrase'];
+								$loc .= ( empty($loc) ? '' : ', ' ) . $ary['phrase'];
 							}
 						}
-						$htmlAry[] = $tmp;
-		
-						$tmp = ''; // Embargo Period:
-						if ( @intval($pData["embargo"]["amount"]) ) {
-							$tmp = 'Embargo: ' . $pData["embargo"]["amount"] . ' ' . @strval($pData["embargo"]["units_phrases"][0]["phrase"]);
-						} else {
-							$tmp = 'Embargo: None';
+						$htmlAry[] = $loc;
+					*/
+						$tmp = 'None';	// Embargo Period:
+						if ( @intval($oaData['embargo']['amount']) ) {
+							$tmp = $oaData['embargo']['amount'] . ' ' . @strval($oaData['embargo']['units_phrases'][0]['phrase']);
 						}
-						$htmlAry[] = $tmp;
+						$htmlAry[] = 'Embargo: ' . $tmp;
 
-						$lic = '';	// License Data
-						foreach( $pData["license"][0]["license_phrases"] as $ary ) {
-							$lic .= ( empty($lic) ? '' : ', ' ) . $ary['phrase'];
+						$licAry = []; // License Data (also see $detailName = 'license' above)
+						foreach( $oaData['license'] as $lIdx => $lAry ) {
+							foreach( $lAry['license_phrases'] as $ary ) {
+								if ( W_S_API_ROMEO_LIC_VER && @intval($lAry['version']) && !strpos($ary['phrase'],strval(intval($lAry['version']))) ) {
+									$ary['phrase'] .= (' ' . $lAry['version']); // expanding the lic. term with the version number
+								}
+								$licAry[rtrim(strtolower($ary['phrase']),'0.')] = $ary['phrase'];
+							}
 						}
-						if ( !empty($lic) ) {
-							$htmlAry[] = 'License' . ( strpos($lic,',') ? 's: ' : ': ' ) . $lic;
+						if ( sizeof($licAry) ) {
+							$htmlAry[] = 'License: ' . $this->addLib4riLicReco($licAry);
+						}
+						
+						// 2022-10-05: Add public notes (currently all, in particular useful with Wiley):
+						if ( @sizeof($oaData['public_notes']) ) {
+							foreach( $oaData['public_notes'] as $tmp ) { $htmlAry[] = $tmp; }
 						}
 
 						$tmp = array_shift( $htmlAry );		// 1st is the line with Accepted/Published version
 						$htmlAry = array_map( function($h) { return '<li class="lib4ri-li-wide">'.$h.'</li>'; }, $htmlAry );
 						$tmp .= '<ul class="lib4ri-ul-flat">' . implode("\r\n",$htmlAry) . '</ul>';
+
 						$oaGreenAry[] = $tmp;
 					}
 				}
@@ -791,15 +818,15 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 		}
 	}
 
-	protected function askApi4riHelper($issnList = null,$wantedList = null)
-	{	
+	public function askApi4riHelper($issnList = null,$wantedList = null)
+	{
 		// function to switch automatically to our web API if local libraries cannot found.
 		// An array will be returned (see api.classes.inc for example/structure).
 		if ( ( $dir = @rtrim( W_S_API_LIB4RI_DIR, '/' ) ) && @include_once($dir.'/api.classes.inc') ) {
 			$api4ri = new get4riJournal($issnList,$wantedList);
 			return $api4ri->getResult(); // as array
 		}
-		$apiUrl = rtrim( W_S_API_LIB4RI_URL, '/' ) . '/?issn=' . $issnList . '&wanted=' . $wantedList;
+		$apiUrl = rtrim( W_S_API_LIB4RI_URL, '/' ) . '/?issn=' . trim($issnList) . '&wanted=' . trim($wantedList);
 		$apiTool = new apiQueryUtils( 'JIF' /* any unused name */ );
 		$jsonCode = $apiTool->makeQuery( $apiUrl );
 		return json_decode( $jsonCode, true /* as array */ );
@@ -918,10 +945,12 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 								if ( $tmp = @trim($dataAry['Link']) ) {
 							//		$markup = '<a href="' . $tmp . '" target="_blank">' . $markup . '</a>';
 									$markup .= ' (<a href="' . $tmp . '" target="_blank">details</a>)';
-									$markup .= ' <ul class="lib4ri-ul-flat">' . '<li class="lib4ri-li-wide">available</li>' . '</ul>';
 								}
-								if ( $tmp = @trim($dataAry['Licensing']) ) {
-									$markup .= ' <ul class="lib4ri-ul-flat">' . '<li class="lib4ri-li-wide">License: ' . $tmp . '</li>' . '</ul>';
+								if ( $tmp = @trim($dataAry['Comment']) ) {
+									$markup .= ' <ul class="lib4ri-ul-flat">' . '<li class="lib4ri-li-wide">' . $tmp . '</li>' . '</ul>';
+								}
+								if ( $tmp = @trim($dataAry['License'],";:,. \n\r\t\v\x00") ) {
+									$markup .= ' <ul class="lib4ri-ul-flat">' . '<li class="lib4ri-li-wide">License: ' . $this->addLib4riLicReco($tmp) . '</li>' . '</ul>';
 								}
 								break;
 							}

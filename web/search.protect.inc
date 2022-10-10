@@ -22,48 +22,27 @@ $_websearch_cidr_list = array(
 	),
 	'eawag' => array(
 		'152.88.128.0/17',
-		'vpn'   => '152.88.189.0/24',
-		'staff' => '152.88.42.0/24',
 		'lan'   => '10.192.0.0/10',
-	/*	'lan'   => '10.193.64.0/18',	experienced, covered above */
 		'eduroam' => '172.29.0.0/16',	/* common for Eawag+Empa, remind websearch_ip_from('eawag'|'empa') checks! */
 	),
 	'empa' => array(
-		'152.88.0.0/20',
-		'152.88.16.0/21',
-		'152.88.24.0/22',
-		'152.88.28.0/23',
-		'152.88.30.0/24',
-		'152.88.32.0/21',
-		'152.88.40.0/23',
-		'152.88.43.0/24',
-		'152.88.44.0/22',
-		'152.88.48.0/20',
-	/*	'vpn' => '152.88.52.0/22',	ok, but covered above */
-		'152.88.64.0/18',
+		'152.88.0.0/17',
 		'lan' => '10.128.0.0/10',
 		'eduroam' => '172.29.0.0/16',	/* common for Eawag+Empa, remind websearch_ip_from('eawag'|'empa') checks! */
 	),
 	'psi'  => array(
 		'129.129.0.0/16',
 		'192.33.118.0/24',
-	/*	'192.33.119.0/24',
-		'192.33.120.0/21',		*/
-		'vpn' => '152.88.30.0/24',
 	),
 	'wsl'  => array(
 		'193.134.200.0/21',
 		'slf' => '195.176.244.0/23',
-		'vpn' => '152.88.31.0/24',
 	),
 	'nerd' => array(
-		'fh' => '152.88.42.103/32',
-		'da' => '152.88.140.161/32',
-		'lk' => '152.88.30.199/32',
+		'da' => '152.88.100.200/32',
 	),
 	'dev'  => array(
-		'fh' => '152.88.42.103/32',
-		'fc' => '152.88.42.51/32',
+		'fh' => '152.88.200.100/32',
 	),
 	'!not' => array('127.0.0.0/8'),
 	'!ign' => array('255.255.255.255/32'),
@@ -73,7 +52,7 @@ $_websearch_bot_blacklist = array(	/* global list with term of bots (resp. user-
 	'bot,search,crawl,spider,scan,scout,slurp',				/* generic */
 	'curl,wget,typo3,java,python,script,rambler,zoom',		/* tools */
 	'archiv,index,httrack',						/* indexers */
-	'ads,job,seo',					/* other/commercials */
+	'ads,job,seo,turnitin',					/* other/commercials */
 );
 
 

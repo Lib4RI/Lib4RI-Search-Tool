@@ -6,7 +6,8 @@
 
 $configAry = array(
 
-	'RESULT_TITLE_LINKED' => false, /* sometimes SLSP is providing an URL for the title of a search result - should we show the URL? */
+	'RESULT_TITLE_LINKED' => false, /* Sometimes SLSP is providing an URL for the title of a search result - should we show the URL? */
+	'API_ROMEO_LIC_VER'   => true,	/* Will add version number (if available) to the license term provided by Sherpa/Romeo */ 
 
 	'API_SLSP_KEY'     => '7777....ffff',
 	'API_SCOPUS_KEY'   => 'fedc....4321',
