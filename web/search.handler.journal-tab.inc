@@ -57,7 +57,8 @@
 				'relation' => implode('<br>',$relAry),
 			/*	'publisher' => 'Publisher: <ul class="lib4ri-ul-flat"><li class="lib4ri-li-wide"><span title="' . $jPubler . ( empty($jAry['place']) ? '' : ' ('.$jAry['place'].')' ) . '">' . $jPubler . '</span></li></ul>',	*/
 				'publisher' => 'Publisher: <span title="' . $jPubler . ( empty($jAry['place']) ? '' : ' ('.$jAry['place'].')' ) . '">' . $jPubler . '</span>',
-				'title'  => trim($jAry['title'], ".,;:=- \r\n\t\v\x00"),
+			/*	'title'  => trim($jAry['title'], ".,;:=- \r\n\t\v\x00"),	*/
+				'title' => '<a href="/web/search.handler.php?api=resolve&scope=alma&id='. $almaId . '" target="_blank">' . trim($jAry['title'], ".,;:=- \r\n\t\v\x00") . '</a>',
 				'issn'   => '<span class="lib4ri-tabul-issn">ISSN</span>: &nbsp;' . ( @empty($jAry['issn']) ? '&nbsp; &mdash;' : $jAry['issn'] ),
 				'eissn'  => ( empty($jAry['e-issn']) ? '&nbsp;' : '<span class="lib4ri-tabul-issn">ISSN</span>: &nbsp;' . strval($jAry['e-issn']) ),
 			/*	'issn'   => '<!-- prio:' . $issnAuxAry['prio'] . ' -->' . $issnAuxAry['pHTML'],
@@ -69,7 +70,7 @@
 				'license' => '<!-- license -->',
 		/*		'empty'  => $auxTag,		*/
 				'clickA'  => 'onclick="javascript:lib4riJournalAreaToggle(this.id,\'' . implode(',',$issnAry) . '\',\'' . $almaId . '\');"',
-				'clickDiv' => 'onclick="javascript:tog = document.getElementById(\'lib4ri-journal-area-toggle-'.$jIdx.'\'); if(tog && tog.title.indexOf(\'Load\') >= 0) { tog.click(); }"',
+				'clickDiv' => 'onclick="javascript:tog = document.getElementById(\'lib4ri-journal-area-toggle-'.$jIdx.'\'); if(tog && tog.title.indexOf(\'Open\') >= 0) { tog.click(); }"',
 			);
 			$htmlTmp .= _lib4ri_twigSimple($repAry, $twigTemplate);
 

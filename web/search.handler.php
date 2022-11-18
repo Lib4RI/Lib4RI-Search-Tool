@@ -36,12 +36,11 @@ $cssAuxAry = array(	/* related to the Scopus-1-Author issue, to be exported */
 	'.lib4ri-bentobox-searchterm { font-weight:700; font-style:italic; }',
 );
 
+$timeTest = 0.0;
 
 // //////////// vvvvv ///////// FUNCTIONS + CLASSES /////// vvvvv /////////////
 
 include_once($_dirAry['local'].'search.handler.functions.inc');	// providing 'exit functions'
-include_once($_dirAry['local'].'search.handler.classes.inc');	// will need global $_reqFormat + $_mimeAry
-
 
 // //////////// vvvvv ////////////// IP CHECKS //////////// vvvvv /////////////
 
@@ -66,19 +65,78 @@ $_is_intranet = websearch_ip_from('lib4ri');
 include_once($_dirAry['local'].'citeproc.styles.tools.inc');	// for websearch_citeproc_style_list_short()
 include_once($_dirAry['local'].'meta-remap.tools.inc');
 include_once($_dirAry['local'].'search.classes.inc');
+include_once($_dirAry['local'].'search.handler.classes.inc');	// will need global $_reqFormat + $_mimeAry
 include_once($_dirAry['local'].'search.classes.journal.inc');
 
 
 
-// //////////// vvvvv //// PROCESSING FUN STARTS HERE: //// vvvvv /////////////
-
 $getJsonAPI = null;
+$timeTest = microtime(true);
+$searchTerm = trim( @strip_tags( urldecode($_GET['find']) ) );		// also available then via classObject->getSearchTerm()
 
 // Special case (legacy support): Produce HTML link tags as we had on the old lib4ri.ch search page.
 // Quite proprietary handling... - partially could be done with JS too, so this probably needs to be revised/removed.
-if ( @!empty($_GET['linkset']) ) {
-	$getJsonAPI = new searchHandler();
-	$getJsonAPI->getJsonLinkSet( trim(strip_tags($_GET['linkset'])) );
+if ( $linkSet = @trim(strip_tags($_GET['linkset'])) ) {
+	if ( stripos($linkSet,'Google') && stripos($linkSet,'Lib4RI') ) { // temp. exception: 'unter construction' for internal/lib4ri.ch search:
+		$htmlAry = array(
+			'<table style="border:0; margin:2ex 0 2ex 0; padding:0;"><tbody><tr><td style="margin-right:2ex;">',
+			'<img src="https://svgsilh.com/png-512/150271-3f51b5.png" width="256" height="238" style="width:256px; height:238px;">',
+			'<!-- image source: https://wordpress.org/openverse/image/b18cfb7f-58ee-4108-b935-7c3fb9d79ce5/ -->',
+			'</td><td>&nbsp;</td><td style="vertical-align:top;">',
+			'<br>With the relaunch of our website, you will see a a results list here. <br>Until then, please use this customized ',
+			'<a href="https://www.google.com/search?hl=en&num=30&q=site%3Awww.lib4ri.ch%20' . rawurlencode($searchTerm) . '" target="_blank">Google link to search lib4ri.ch</a>',
+			'.</td></tr></tbody></table>',
+		);
+		$retAry = array( 'set' => array( implode('',$htmlAry) ) );		// for compatibility, send 'set' as well!
+		$retAry['html'] = '<div class="lib4ri-bentobox-linkset-link">' . $retAry['set'][0] . '</div>';
+		$tmp = @trim( $GLOBALS['_reqFormat'] );
+		header('Content-Type: ' . ( @empty($GLOBALS['_mimeAry'][$tmp]) ? 'text/plain' : $GLOBALS['_mimeAry'][$tmp] ) . ' charset=utf-8');
+		print json_encode( $retAry, JSON_PRETTY_PRINT );
+	}
+	elseif ( $_SERVER['HTTP_HOST'] != '152.88.205.16' /* ALWAYS EXPECT OF DEV CURRENTLY */ || !stripos($linkSet,'Wikipedia') ) {
+		$getJsonAPI = new searchHandler();
+		$getJsonAPI->getJsonLinkSet($linkSet);
+	}
+	else {
+		$getJsonAPI = new searchHandler();
+		$jsonAry = $getJsonAPI->getJsonLinkSet($linkSet,'array');
+
+		$getJsonAPI = new apiQueryWikihit();
+		$tmpAry = json_decode($getJsonAPI->queryNow( strtr(ucWords($searchTerm),' ','_') ),true); // API is case-sensitive!(?) - better chances with UC words!(?)
+
+	//	echo print_r( json_encode($tmpAry,JSON_PRETTY_PRINT), 1 ); exit;
+
+		if ( @!empty($tmpAry['extract']) ) {
+
+			//	$html = '<table border="0" cellpadding="0" cellspacing="0" style="margin-bottom:18px;"><tr><td>';
+			//	$html .= '<img src="' . $tmpAry['thumbnail']['source'] . '" width="' . $tmpAry['thumbnail']['width'] . '" height="' . $tmpAry['thumbnail']['height'] . '" />';
+			//	$html .= '</td><td style="vertical-align:top; padding:6px 0 0 12px;">';
+			//	$html = '<a href="' . $tmpAry['content_urls']['desktop']['page'] . '" target="_blank">' . $html . '</a> ' . $tmpAry['extract_html'];
+			//	$html .= '</td></tr></table><br>';
+
+			$img = '<img src="' . $tmpAry['thumbnail']['source'] . '" height="' . /* min($tmpAry['thumbnail']['height'],200) . */ '180px" />';
+			$img = '<a href="' . $tmpAry['content_urls']['desktop']['page'] . '" target="_blank">' . $img . '</a>';
+
+			$ext = implode(' ',array_slice(explode(' ',$tmpAry['extract_html']),0,75));
+			if ( $pos = strpos($ext,'</b>') ) {
+				$ext = substr($ext,0,$pos+4) . '</a>' . substr($ext,$pos+4);
+				if ( ( $pos = strpos($ext,'<b') ) !== false ) {
+					$ext = substr($ext,0,$pos) . '<a href="' . $tmpAry['content_urls']['desktop']['page'] . '" target="_blank">' . substr($ext,$pos);
+				}
+			}
+			$html = '<table border="0" cellpadding="0" cellspacing="0" style="margin:0px 0 ' . ( strlen($tmpAry['extract_html']) > strlen($ext) ? '15px' : '6px' ) . ' 0;""><tr>';
+			$html .= '<td style="vertical-align:top; padding:3px 6px 6px 0;">' . $ext . ( strlen($tmpAry['extract_html']) > strlen($ext) ? '...' : '' ) . '</td>';
+			$html .= '<td>' . $img . '</tr></table>';
+
+			$pos = strpos($jsonAry['html'],'>') + 1;
+			$jsonAry['html'] = substr($jsonAry['html'],0,$pos) . $html . substr($jsonAry['html'],$pos);
+			$jsonAry['set'] = array_merge( array($html), $jsonAry['set'] );
+		}
+
+		$tmp = @trim( $GLOBALS['_reqFormat'] );
+		header('Content-Type: ' . ( @empty($GLOBALS['_mimeAry'][$tmp]) ? 'text/plain' : $GLOBALS['_mimeAry'][$tmp] ) . ' charset=utf-8');
+		print json_encode( $jsonAry, JSON_PRETTY_PRINT );
+	}
 	exit;
 }
 
@@ -90,6 +148,17 @@ if ( !( $apiName = @strtolower(trim(strip_tags($_GET['api']))) ) ) {
 // //////////// vvvvv ///// API class/object selection //// vvvvv /////////////
 
 $scopeTmp = trim( @strip_tags($_GET['scope']) );
+
+if ( @strval($_GET['api']) == 'resolve' && in_array($scopeTmp,['alma','dora']) ) {
+	if ( ( $id = @trim($_GET[$scopeTmp]) ) || ( $id = @trim($_GET['id']) ) ) {
+		$apiTest = new searchHandler();
+		$apiTest->urlResolve($scopeTmp, $id ); // for alma: 99116717651105522
+		// for example:
+		// https://search.lib4ri.ch/web/search.handler.php?api=resolve&scope=alma&id=99116717651105522
+		exit;
+	}
+}
+
 switch ( $apiName ) {
 	case 'google':
 		$searchTerm = @trim(strip_tags(rawurldecode($_GET['find'])));		// OK/standable if empty
@@ -173,7 +242,7 @@ $cite1by1 = @boolval( $metaMap['citeproc'][$apiHost]['_cite_1_by_1'] ); // see c
 
 $json4cp = ( ( $cite1by1 || $apiName == 'scopus' ) ? array() : '' );
 
-if ( @!empty($jsonAry) ) {
+if ( @!empty($jsonAry) && @isset($metaMap['citeproc'][$apiHost]) && /* exceptions: */ !in_array($apiName,['wikihit']) ) {
 	$json4cp = websearch_json_remap( 
 		$jsonAry,
 		$apiHost,
@@ -183,7 +252,7 @@ if ( @!empty($jsonAry) ) {
 }
 
 // Test output:
-if ( @intval($_GET['dev-test']) == 6 && websearch_ip_from('dev') ) { echo print_r( $json4cp, true ); exit; }
+if ( @intval($_GET['dev-test']) == 5 && websearch_ip_from('dev') ) { echo "JSON for CiteProc:\r\n\r\n" . print_r( $json4cp, true ); exit; }
 
 
 // Special case / Scopus-1-Author issue:
@@ -193,21 +262,22 @@ if ( $apiName == 'scopus' && is_array($json4cp) && sizeof($json4cp) ) {
 	include_once($_dirAry['local'].'search.handler.author-aux.inc');
 }
 
-
 // Test output:
-if ( @intval($_GET['dev-test']) == 7 && websearch_ip_from('dev') ) { echo print_r( $json4cp, true ); exit; }
+if ( @intval($_GET['dev-test']) == 6 && websearch_ip_from('dev') ) { echo "JSON for CiteProc:\r\n\r\n" . print_r( $json4cp, true ); exit; }
 
 
 $numFound = 0;
-if ( $apiName == 'wikipedia' ) {	// work-around, to be tested/revised
+if ( substr($apiName,0,4) == 'wiki' ) {	// work-around, to be tested/revised
 	$numFound = $getJsonAPI->getNumFound();
-} elseif ( $_is_intranet || !$_is_scopus_or_wos ) {
+} elseif ( isset($metaMap['citeproc'][$apiHost]) && ( $_is_intranet || !$_is_scopus_or_wos ) ) {
 	$numFound = @intval( websearch_json_value_by_path( $jsonAry, $metaMap['citeproc'][$apiHost]['_numFound'] ) );
 }
 
 $searchLimit = $getJsonAPI->searchLimit;
 $no_item_listing = boolval( stripos('/national/',$getJsonAPI->apiScope) );
 
+
+if ( @intval($_GET['dev-test']) == 8 && websearch_ip_from('dev') ) { echo "JSON Array:\r\n\r\n" . print_r( $jsonAry, true ); exit; }
 
 
 // //////////// vvvvv ////// RENDERING HTML RESPONSE ////// vvvvv /////////////
@@ -277,14 +347,8 @@ if ( $apiHost == 'slsp' && $getJsonAPI->apiName == 'book' && $getJsonAPI->apiSco
 	$apiObjDisco = new apiQueryBook('discovery');
 	$jsonTmp = $apiObjDisco->queryNow();
 	$numDisco = intval( websearch_json_value_by_path( json_decode($jsonTmp,true), $metaMap['citeproc'][$apiHost]['_numFound'] ) );
-	$htmlAry['footer'] .= '<br><br>';
-	if ( $numNatio || $numDisco ) {
-		$htmlAry['footer'] .= 'Extend search via ' . $getJsonAPI->apiLabel . ': ';
-	} else {
-		$htmlAry['footer'] .= ( $numFound ? 'Ext' : 'Also ext' ) . 'ending search via ' . $getJsonAPI->apiLabel . ' may not be successful: ' . ( $isDev ? '&#128533;' : '.' );
-	}
-	$htmlAry['footer'] .= ' <ul class="lib4ri-ul-flat">';
-	$htmlAry['footer'] .= '<li class="lib4ri-li-wide"><a href="' . $apiObjDisco->webUrl() . '" target="_blank">' . $numDisco . ' result' . ( $numDisco == 1 ? '' : 's' ) . '</a> in all libraries</li>';
+	$htmlAry['footer'] .= '<br><br>Extend search: <ul class="lib4ri-ul-flat">';
+	$htmlAry['footer'] .= '<li class="lib4ri-li-wide"><a href="' . $apiObjDisco->webUrl() . '" target="_blank">' . $numDisco . ' result' . ( $numDisco == 1 ? '' : 's' ) . '</a> in all ' . $getJsonAPI->apiLabel . ' libraries</li>';
 	$htmlAry['footer'] .= '<li class="lib4ri-li-wide"><a href="' . $apiObjNatio->webUrl() . '" target="_blank">' . $numNatio . ' result' . ( $numNatio == 1 ? '' : 's' ) . '</a> including book chapters</li>';
 	$htmlAry['footer'] .= '</ul>';
 }
@@ -372,6 +436,8 @@ if ( !empty($_reqFormat) && in_array($_reqFormat,array_keys($_mimeAry)) ) {
 	/*		'html-header' => $htmlAry['header'],
 			'html-center' => $htmlAry['center'],
 			'html-footer' => $htmlAry['footer'],		*/
+	/*		'time-needed' => $getJsonAPI->timeNeeded,		*/
+			'time-test' => ( microtime(true) - $timeTest ),
 		), JSON_PRETTY_PRINT );
 	exit;
 }

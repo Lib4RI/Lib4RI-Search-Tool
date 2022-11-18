@@ -18,8 +18,14 @@ function _lib4ri_exitByError( $eMsg = 'ERROR' ) {
 /*
 	Trivial/limited function to replace 'placeholder terms' in a TWIG template. For full support see https://twig.symfony.com
 	An assoc input array is required with, e.g. array( 'term1inTwig' => 'value1forTwig', 'term2inTwig' => 'value2forTwig', ... )
+	Conventions:
+	- Only two types of placeholders get replaced, normal like "{{ varName }}" and custom like "<!--{{ varName }}-->"
+	- Syntaxwise space characters will matter here. On one hand I wanted to avoid the slower PREG_replace() (even if more powerful),
+	  on the other hand "<!--{{ varName }}-->" will be parsed/replaced, while "<!-- {{ varName }} -->" stays hidden in displayed HTML.
 */
-function _lib4ri_twigSimple( $repAry, $twigTemplate ) {
+function _lib4ri_twigSimple( $repAry, $twigTemplate, $htmlUncomment = true ) {
+	if ( $htmlUncomment ) {
+		$twigTemplate = str_replace( array_map(function($s) { return '<!--{{ '.$s.' }}-->'; }, array_keys($repAry)), array_values($repAry), $twigTemplate);
+	}
 	return str_replace( array_map(function($s) { return '{{ '.$s.' }}'; }, array_keys($repAry)), array_values($repAry), $twigTemplate);
 }
-

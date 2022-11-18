@@ -1,41 +1,15 @@
-/* Temporary 'corrections' for Drupal */
-.layout-main {
-	margin-top: 0px;
-	margin-bottom: 30px;
-	position: relative;
-	top: -20px;
-	z-index: 90;
-}
-.layout-container { max-width: 1920px; }
-.header { display: none; }
-.region-header { display: none; }
-.region-primary-menu { display: none; }
-
-
 /* Desktop CSS definitions */
-body {
-	font-family: calibri,sans-serif;
-	font-size: 12pt;
-	line-height: 15pt;
-	color: #444;
-	width:96%;
-	margin-left:2%;
-	margin-right:2%;
-}
-div {
-	vertical-align: top;
-	color: #444;
-}
-h1,h2,h3 {
-	color: #1A9481;
-	font-weight: 700;
-}
 
-a:link	{ color: #1A9481; }
-a:visited { color: #0A7461; }
-a:hover	{ color: #2AB491; }
-a:focus { color: #2AB491; }
-a:active {color: #2AB491; }
+// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+// mainly layout/formatting related:
+
+// h1,h2,h3 { color: #1A9481; font-weight: 700; }
+
+// a:link	{ color: #1A9481; }
+// a:visited { color: #0A7461; }
+// a:hover	{ color: #2AB491; }
+// a:focus { color: #2AB491; }
+// a:active {color: #2AB491; }
 
 a.lib4ri-search-tab-link {     
 	display: inline-block;
@@ -46,7 +20,7 @@ a.lib4ri-search-tab-link {
 	margin: -1ex;
 	text-decoration: none !important;
 	border-bottom: 0 none !important;
-	font-size: 13pt;
+	font-size: 13.5pt;
 }
 
 .lib4ri-ul-flat {
@@ -54,45 +28,58 @@ a.lib4ri-search-tab-link {
 	list-style: revert;
 }
 .OFF.ul.lib4ri-ul-flat ul {
-	margin: 0 0 0 1.9ex !important;
+	margin: 0 0 0 4.75ex !important;
 	list-style: revert;
 }
 .OFF.lib4ri-li-wide { padding-left: 0 !important; }
 
 .lib4ri-tabul-issn {
-	min-width: 6ex;
+	min-width: 7ex;
 	float: left;
 }
 
 .lib4ri-toggle-opened::before {
-	content: "\21D0";
-	line-height: 1ex;
+	content: "\2013";
+	font-size:1.5ex;
+	line-height:1ex;
 	position: relative;
-	top: -0.25ex;
-	left: -0.3ex;
+	top: -.6ex;
+	left: -.5ex;
 }
 .lib4ri-toggle-closed::before {
-	content: "\21D3";
+	content: "+";
+	font-size:1.5ex;
+	line-height:1ex;
 	position: relative;
-	line-height: 1ex;
-	top: -0.1ex;
-	left: -0.1ex;
+	top: -.5ex;
+	left: -.5ex;
+}
+
+div.lib4ri-arrow-trend {
+	display:inline-block; 
+	margin-left:.25em;
+	font-size:1.25em;
+	line-height:.8em; 
+	content: "\279e";
+}
+lib4ri-arrow-trend::after {
+	content: "\279e";
 }
 
 .lib4ri-trend-up::before {
 	content: "\2197";
 	line-height: 1ex;
-	font-size: 100%;
+	font-size: 125%;
 }
 .lib4ri-trend-steady::before {
 	content: "\2192";
 	line-height: 1ex;
-	font-size: 90%;
+	font-size: 112.5%;
 }
 .lib4ri-trend-down::before {
 	content: "\2198";
 	line-height: 1ex;
-	font-size: 100%;
+	font-size: 125%;
 }
 .lib4ri-recommended {
 	font-weight:400;
@@ -132,23 +119,55 @@ a.lib4ri-search-tab-link {
 }
 .csl-left-margin { display: none; }
 
-#lib4ri-alltab-container {
+// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+// mainly structure related:
+
+div {
+	vertical-align: top;
+}
+
+#lib4ri-websearch-body {
+	width:96%;
+	margin-left:1.5%;
+	margin-right:2.5%;
+}
+#lib4ri-tab-container {
+	width: 100%;
+	text-align: center;
+//	background-color: #e8f8e0;
+	padding: 1ex 1ex 1ex 1ex;
+}
+#lib4ri-back-container {
+	// obsolte, now lib4ri-tab-container - do not use the *ID* anymore
+	width: 100%;
+	text-align: center;
+//	background-color: #e8f8e0;
+	padding: 1ex 1ex 1ex 1ex;
+}
+
+#lib4ri-tab-header-container {
 	text-align:center;
 	width:100%;
-	background-color:#e8f8e0;
+//	background-color:#e8f8e0;
+}
+#lib4ri-alltab-container {
+	// obsolete
+	text-align:center;
+	width:100%;
+//	background-color:#e8f8e0;
 }
 
 #lib4ri-search-container {
 	text-align: center;
 	width:100%;
 	position:relative;
-	top: 0.5ex;
+	top: 0ex;
 }
 
 #lib4ri-search-form-container {
 	padding: 0.5ex .5ex .5ex .5ex;
 	margin: 0.5ex .5ex .5ex .5ex;
-	background-color: #f6f6f2;
+//	background-color: #f6f6f2;
 	text-align: center;
 	width: 98.5%; 
 }
@@ -187,21 +206,22 @@ a.lib4ri-search-tab-link {
 }
 #lib4ri-search-form-term {
 	width: 75%;
-	height: 4ex;
+	height: 3.6ex;
 	position:relative;
 	left: 2.3ex;
 	z-index: 34;
+	font-size: 90%;
 }
 #lib4ri-search-form-icon {
 	display: inline-block; 
 	width: 4ex;
-	height: 3.5ex;
+	height: 3.2ex;
 	background-image: url("https://upload.wikimedia.org/wikipedia/commons/4/48/Loupe.svg");
-	background-size: 3.7ex 3.5ex;
+	background-size: 3.7ex 3.2ex;
 	background-position: 0.3ex 0;
 	background-repeat: no-repeat;
 	background-color: transparent;
-	margin: .25ex 0 .25ex 0;
+	margin: .2ex 0 .2ex 0;
 	position:relative;
 	left: -2.3ex;
 	top: 1.3ex;
@@ -222,7 +242,7 @@ a.lib4ri-search-tab-link {
 	padding: .5ex .5ex .5ex 0.75ex;
 	margin: 1ex .5ex 2ex .5ex;
 	text-align: left;
-	min-height: 10ex;
+	min-height: 7.5ex;
 	border: 0px solid #7a5;
 }
 .lib4ri-bentobox-result {
@@ -234,13 +254,17 @@ a.lib4ri-search-tab-link {
 	border: 1px solid #7a5;
 	padding: .5ex 1ex .5ex 3ex;
 }
+.lib4ri-bentobox-noapi {
+	border: 1px solid #7a5;
+	padding: .5ex 1ex .5ex 3ex;
+}
 .lib4ri-bentobox-center { 
 	margin: 1.25ex 0 0 0;
 }
 .lib4ri-bentobox-label {
 	font-weight: 700;
 	line-height: 4ex; 
-	color: #646860; 
+//	color: #646860; 
 	padding: 0 0 0.5ex 3.25ex;
 }
 .lib4ri-search-anim-block {
@@ -273,49 +297,55 @@ a.lib4ri-search-tab-link {
 
 .lib4ri-search-col {
 	width: 31%;
-	margin: 2ex .75ex 0ex 0.75ex;
+	margin: 1.5ex 0.7ex 0ex 0.7ex;
+	padding-left: 0.5ex;
+	padding-right: 0.5ex;
 	display: inline-block;
+	vertical-align: top;
 	background-color: transparent;
 }
-#lib4ri-search-col-1to2 {
-	width: 63%;
-	margin: 2ex 1ex 0ex 0.75ex;
+.lib4ri-search-col-1to2 {
+	width: 64.5%;
+	margin: 1.5ex 1ex 0ex 0.7ex;
+	padding-left: 0.5ex;
+	padding-right: 0.5ex;
 	display: inline-block;
+	vertical-align: top;
 	background-color: transparent;
 }
-#lib4ri-search-col-2to3 {
-	width: 63%;
-	margin: 2ex 0.75ex 0ex 1ex;
+.lib4ri-search-col-2to3 {
+	width: 64.5%;
+	margin: 1.5ex 0.7ex 0ex 1ex;
+	padding-left: 0.5ex;
+	padding-right: 0.5ex;
 	display: inline-block;
+	vertical-align: top;
 	background-color: transparent;
 }
-#lib4ri-search-col-1to3 {
+.lib4ri-search-col-1to3 {
 	width: 96%;
-	margin: 2ex 0.75ex 0ex 0.75ex;
+	margin: 2ex .7ex 0ex .7ex;
+	padding-left: 0.5ex;
+	padding-right: 0.5ex;
 	display: inline-block;
+	vertical-align: top;
 	background-color: transparent;
 }
 
-#lib4ri-back-container {
-	width: 100%;
-	text-align: center;
-	background-color: #e8f8e0;
-	padding: 1ex 1ex 1ex 1ex;
-}
 .lib4ri-result-container {
-    -moz-border-radius-topleft: 9px;
-    -webkit-border-top-left-radius: 9px;
-    border-top-left-radius: 9px;
-    -moz-border-radius-topright: 9px;
-    -webkit-border-top-right-radius: 9px;
-    border-top-right-radius: 9px;
-    -moz-border-radius-bottomleft: 9px;
-    -webkit-border-bottom-left-radius: 9px;
-    border-bottom-left-radius: 9px;
-    -moz-border-radius-bottomright: 9px;
-    -webkit-border-bottom-right-radius: 9px;
-    border-bottom-right-radius: 9px;
-    border: 1px solid #8b6;
+	-moz-border-radius-topleft: 9px;
+	-webkit-border-top-left-radius: 9px;
+	border-top-left-radius: 9px;
+	-moz-border-radius-topright: 9px;
+	-webkit-border-top-right-radius: 9px;
+	border-top-right-radius: 9px;
+	-moz-border-radius-bottomleft: 9px;
+	-webkit-border-bottom-left-radius: 9px;
+	border-bottom-left-radius: 9px;
+	-moz-border-radius-bottomright: 9px;
+	-webkit-border-bottom-right-radius: 9px;
+	border-bottom-right-radius: 9px;
+	border: 2px solid #8b6;
 	position: relative;
 	z-index: 17;
 }
@@ -325,34 +355,35 @@ a.lib4ri-search-tab-link {
 	display: inline-block;
 	margin: 0ex 1ex 0ex 1ex;
 	padding: 1.6ex 0 1.4ex 0; 
-    -moz-border-radius-topleft: 12px;
-    -webkit-border-top-left-radius: 12px;
-    border-top-left-radius: 12px;
-    -moz-border-radius-topright: 12px;
-    -webkit-border-top-right-radius: 12px;
-    border-top-right-radius: 12px;
-    border: 1px solid #7a5;
-    border-bottom-color: transparent !important;
-    border-bottom: 0 none !important;
+	-moz-border-radius-topleft: 12px;
+	-webkit-border-top-left-radius: 12px;
+	border-top-left-radius: 12px;
+	-moz-border-radius-topright: 12px;
+	-webkit-border-top-right-radius: 12px;
+	border-top-right-radius: 12px;
+	border: 1px solid #7a5;
+	border-bottom-color: transparent !important;
+	border-bottom: 0 none !important;
 }
 .lib4ri-search-tab-on {
 	margin: 0ex 1ex 0ex 1ex;
 	padding: 1.6ex 0 1.4ex 0; 
 	border: 1px solid #8b6;
 	background-color: #fCfCf8;
-	color: #333;
+	border: 2px solid #7a5;
 	position: relative;
 	z-index: 18;
-	top: 1px;
+	top: 2px;
 }
 .lib4ri-search-tab-off {
 	margin: 1ex 1ex 0ex 1ex;
 	padding: 1.1ex 0 0.9ex 0; 
 	border: 1px solid #593;
 	background-color: #e8e8e4;
-	color: #aaa;
+	border: 1px solid #7a5;
 	position: relative;
 	z-index: 16;
+	top: 3px;
 }
 
 [id^='lib4ri-journal-title-'] {
@@ -369,9 +400,9 @@ a.lib4ri-search-tab-link {
 
 }
 .lib4ri-journal-area-top {
-    border-top: 1px solid #ccc;
+	border-top: 1px solid #ccc;
 	width: 100%;
-	padding: 1ex 0ex 1ex 0ex;
+	padding: 1.25ex 0ex 1ex 0ex;
 	text-align: left;
 }
 .lib4ri-journal-area:nth-child(odd) { 
@@ -399,11 +430,19 @@ a.lib4ri-search-tab-link {
 	width: 47%;
 	margin: 0ex 1.0ex 0ex 1.0ex;
 	display: inline-block;
+	vertical-align: top;
 	background-color: transparent;
 }
 .lib4ri-journal-area-col-data {
 	padding: 0.25ex 1ex .25ex 1ex;
 }
+.OFF.lib4ri-journal-area-col-data-test {
+	padding: .1ex .5ex .1ex .5ex;
+	margin: .15ex .5ex .1ex .5ex;
+	border: 0px solid transparent;
+	background-color: #f3fff7;
+}
+
 .lib4ri-journal-linklist{
 	white-space: nowrap;
 }
@@ -417,18 +456,14 @@ a.lib4ri-search-tab-link {
 /* Smartphone Tunings */
 @media screen and (max-width: 1090px) {
 
-	body {
-		font-family: calibri,sans-serif;
-		font-size: 12pt;
-		line-height: 15pt;
-		color: #333;
+	#lib4ri-websearch-body {
 		width: 97%;
 		margin-left:0%;
 		margin-right:3%;
 	}
 
 	.layout-container { max-width: revert; }
-	   
+
 	#lib4ri-search-form-area {
 		width: 80%;
 		display: inline-block;
@@ -447,8 +482,8 @@ a.lib4ri-search-tab-link {
 	.lib4ri-search-col {
 		width: 100%; 
 	}
-	#lib4ri-search-col-1to2,
-	#lib4ri-search-col-2to3 {
+	.lib4ri-search-col-1to2,
+	.lib4ri-search-col-2to3 {
 		width: 100%; 
 	}
 	.lib4ri-search-tab-5,
@@ -463,7 +498,7 @@ a.lib4ri-search-tab-link {
 		padding: 1.3ex 0 1.2ex 0 !important;
 		border: 1px solid #583;
 		background-color: #e8e8e4;
-		color: #aaa;
+//		color: #aaa;
 		position: relative;
 		z-index: 16;
 	}
@@ -472,7 +507,7 @@ a.lib4ri-search-tab-link {
 		padding: 1.3ex 0 1.2ex 0 !important;
 		border: 1px solid #8b6;
 		background-color: #fCfCf8;
-		color: #333;
+//		color: #333;
 		position: relative;
 		z-index: 18;
 	}

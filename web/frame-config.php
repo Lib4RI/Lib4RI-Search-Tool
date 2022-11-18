@@ -242,8 +242,9 @@ $arrEnginges['journals']['main'] = array(
     'Journals in swisscovery' => array(
       'noFrameBrowserIntranet' => 'Chrome,Edge,Safari',
       'noFrameBrowserExternal' => 'Chrome,Edge,Safari',
-      'url'                    => 'https://lib4ri.swisscovery.slsp.ch/discovery/search?query=title,contains,###&tab=41SLSP_LIB_DN_CI&search_scope=DN_and_CI&vid=41SLSP_LIB:GO&mfacet=rtype,include,journals,1&mfacet=rtype,include,newspapers,1&mfacet=tlevel,include,online_resources,2&lang=en&offset=0',
-     'info'    	      => '/resources/journals.html',
+//    'url'                    => 'https://lib4ri.swisscovery.slsp.ch/discovery/search?query=title,contains,###&tab=41SLSP_LIB_DN_CI&search_scope=DN_and_CI&vid=41SLSP_LIB:GO&mfacet=rtype,include,journals,1&mfacet=rtype,include,newspapers,1&mfacet=tlevel,include,online_resources,2&lang=en&offset=0',
+      'url'                    => 'https://lib4ri.swisscovery.slsp.ch/discovery/search?query=title,contains,###&tab=41SLSP_LIB_DN_CI&search_scope=DN_and_CI&vid=41SLSP_LIB:GO&mfacet=rtype,include,journals,1&mfacet=rtype,include,newspapers,1&lang=en&offset=0',
+      'info'    	      => '/resources/journals.html',
       'replaceTag'            => '###',
       'replaceGermanVowel'    => true,
       'keywordSeparator'      => '+',
@@ -759,6 +760,39 @@ $arrEnginges['institutes']['WSL'] = array(
       'enabled'               => true,
       'prio'                  => 1,
     )
+);
+
+$arrEnginges['institutes']['Lib4RI'] = array(
+    'Search Lib4RI website with Google'    	      => array(
+      'url'                  => 'https://www.google.com/search?hl=en&num=30&q=site%3Awww.lib4ri.ch%20###',
+      'info'           	      => '/resources/more/search-the-web.html#full_lib4ri',
+      'replaceTag'            => '###',
+      'replaceGermanVowel'    => false,
+      'keywordSeparator'      => '%20',
+      'addBefore'             => false,
+      'enabled'               => true,
+      'prio'                  => 1,
+    ),
+    'Search Lib4RI website with Google (PDF only)'    	      => array(
+      'url'                  => 'https://www.google.com/search?hl=en&num=30&q=site%3Awww.lib4ri.ch%20###%20filetype%3aPDF',
+      'info'           	      => '/resources/more/search-the-web.html#full_lib4ri',
+      'replaceTag'            => '###',
+      'replaceGermanVowel'    => false,
+      'keywordSeparator'      => '%20',
+      'addBefore'             => false,
+      'enabled'               => true,
+      'prio'                  => 1,
+    ),
+    'Search Lib4RI website with Google (no PDF)'    	      => array(
+      'url'                  => 'https://www.google.com/search?hl=en&num=30&q=site%3Awww.lib4ri.ch%20###%20-filetype%3aPDF',
+      'info'           	      => '/resources/more/search-the-web.html#full_lib4ri',
+      'replaceTag'            => '###',
+      'replaceGermanVowel'    => false,
+      'keywordSeparator'      => '%20',
+      'addBefore'             => false,
+      'enabled'               => true,
+      'prio'                  => 1,
+    ),
 );
 
 $arrEnginges['more']['back']		= '/resources/more/climate-data.html';

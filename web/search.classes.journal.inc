@@ -32,7 +32,7 @@ class apiQueryUtilsIssn extends apiQueryUtils
 			$this->issnAry = array_map( array($this,'cleanIssn'), array_values($ary[0]) );
 		}
 	}
-	
+
 	/*
 		Will turn an array with CC licenses into a sting/list where 'CC BY' will get at LibRI recommendation hint.
 		So for CC BY we add 'recommended', for example:
@@ -991,11 +991,7 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 				'https://lib4ri.swisscovery.slsp.ch/discovery/search?query=title,contains,Entomology&pfilter=rtype,exact,journals&tab=LibraryCatalog&search_scope=MyInstitution&vid=41SLSP_LIB:GO&mfacet=tlevel,include,online_resources,1&limit=10&offset=0&',
 			) );
 		} else {	/* search in title, only online journals */
-			$this->setWebUrl( str_replace(		/* to be replaced, just fully working links added here for debug reasons */
-				array('alma99116818663005522'),
-				array($this->almaId),
-				'https://lib4ri.swisscovery.slsp.ch/discovery/fulldisplay?docid=alma99116818663005522&context=L&vid=41SLSP_LIB:GO',
-			) );
+			$this->setWebUrl( 'https://lib4ri.swisscovery.slsp.ch/discovery/fulldisplay?docid=' . $this->almaId /* alma99116818663005522 */ . '&context=L&vid=41SLSP_LIB:GO' );
 		}
 
 		if ( empty($this->almaId) ) {
@@ -1004,15 +1000,9 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 				array_values($repAry),
 				'https://lib4ri.swisscovery.slsp.ch/primaws/rest/pub/pnxs?blendFacetsSeparately=false&disableCache=false&getMore=0&inst=41SLSP_LIB&lang=en&limit=10&offset=0&multiFacets=facet_tlevel,include,online_resources&newspapersActive=false&newspapersSearch=false&offset=0&pcAvailability=true&q=title,contains,Entomology,AND;rtype,exact,journals&qExclude=&qInclude=&rapido=false&refEntryActive=true&rtaLinks=true&scope=MyInstitution&searchInFulltextUserSelection=true&skipDelivery=Y&sort=rank&tab=LibraryCatalog&vid=41SLSP_LIB:GO&'
 			) );
-		} else {
-			$this->setApiUrl( str_replace(		/* to be replaced, just fully working links added here for debug reasons */
-				array('alma99116818663005522'),
-				array($this->almaId),
-			/*	'https://lib4ri.swisscovery.slsp.ch/primaws/rest/pub/pnxs/L/alma99116818663005522?vid=41SLSP_LIB:GO&lang=en'	*/
-				'https://lib4ri.swisscovery.slsp.ch/primaws/rest/pub/edelivery/alma99116818663005522?vid=41SLSP_LIB:GO&lang=en&googleScholar=false&'
-		//		Test:
-		//		https://lib4ri.swisscovery.slsp.ch/primaws/rest/pub/edelivery/alma99116727441905522?vid=41SLSP_LIB:GO&lang=en&googleScholar=false&
-			) );
+		} else { /* Example: https://lib4ri.swisscovery.slsp.ch/primaws/rest/pub/edelivery/alma99116727441905522?vid=41SLSP_LIB:GO&lang=en&googleScholar=false& */
+	//		$this->setApiUrl( 'https://lib4ri.swisscovery.slsp.ch/primaws/rest/pub/pnxs/L/' . $this->almaId /* alma99116818663005522 */ . '?vid=41SLSP_LIB:GO&lang=en' );
+			$this->setApiUrl( 'https://lib4ri.swisscovery.slsp.ch/primaws/rest/pub/edelivery/' . $this->almaId /* alma99116818663005522 */ . '?vid=41SLSP_LIB:GO&lang=en&googleScholar=false&' );
 		}
 		
 		$jsonCode = $this->makeQuery( $this->apiUrl, 60 );		// large timeout recommanded
@@ -1041,8 +1031,9 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 			elseif ( $wanted == 'available' ) {
 				$markup = @trim(strip_tags($jsonObj->consolidatedCoverage),".; \n\r\t\v\x00");
 				$linkAry = array(
-					'own' => '' /* absolute/infinite link to SLSP resolver */ ,
-					'ext' => '' /* external (ALMA) link with https://... */ ,
+					'own' => '' /* TBA: relative/infinite link to SLSP resolver */ ,
+					'ext' => '' /* TBA: external (ALMA) link with https://... */ ,
+					'fix' => 'https://lib4ri.swisscovery.slsp.ch/discovery/fulldisplay?docid=' . $this->almaId . '&context=L&vid=41SLSP_LIB:GO',
 				);
 				foreach( $jsonObj->electronicServices as $journal ) {
 					if ( empty($markup) && !( $markup = @trim(strip_tags($journal->availability),".; \n\r\t\v\x00") ) ) {
@@ -1059,9 +1050,10 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 				if ( stripos($markup,'Available') !== 0 ) {
 					$markup = rtrim( 'Available online ' . ltrim($markup) );
 				}
-				if ( !empty($linkAry['own']) || !empty($linkAry['ext']) ) {
-					$markup = '<a href="' . ( !empty($linkAry['own']) ? $linkAry['own'] : $linkAry['ext'] ) . '" target="_blank">' . $markup . '</a>';
-				}
+			//	if ( !empty($linkAry['own']) || !empty($linkAry['ext']) ) {
+			//		$markup = '<a href="' . ( !empty($linkAry['own']) ? $linkAry['own'] : $linkAry['ext'] ) . '" target="_blank">' . $markup . '</a>';
+			//	}
+				$markup = '<a href="' . $linkAry['fix'] . '" id="' . str_replace('@','toplink',$this->htmlTarget) . '" _tba="' . $linkAry['own'] . '" target="_blank">' . $markup . '</a>';
 			}
 
 			if ( !empty($markup) ) {
@@ -1192,3 +1184,4 @@ class apiQueryIssnCrossref extends apiQueryUtilsIssn
 // ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////////////////////////////
 */
+

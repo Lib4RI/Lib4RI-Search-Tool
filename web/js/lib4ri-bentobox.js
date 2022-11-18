@@ -8,6 +8,10 @@ if ( lib4riSearchScript == undefined ) {
 	var lib4riSearchScript = '/web/search.handler.php';
 }
 
+if ( lib4riSearchJournalLabelId == undefined ) {	// currently: the div in the 2nd tab where 'Journal List' is written
+	var lib4riSearchJournalLabelId = 'lib4ri-bentobox-label-2-1-1';
+}
+
 if ( lib4riSearchTab == undefined ) {
 	var lib4riSearchTab = [];
 	lib4riSearchTab[0] = {  /* unused: */
@@ -79,10 +83,12 @@ if ( typeof(lib4riJsonFetchOld) != 'function' ) {
 }
 
 if ( typeof(lib4riJsonFetch) != 'function' ) {
-	function lib4riJsonFetch(urlFile, callback) {
+	function lib4riJsonFetch(urlFile, bbName, callback) {
 		let httpReq = new XMLHttpRequest();
 		httpReq.ontimeout = function () {
 			console.error('Timeout for Request ' + urlFile);
+			let i = Math.max(parseInt(httpReq.status),400);
+			lib4riSearchAnimLoad( bbName, (0 - i), 'Connection timeout (' + i + ')' );
 		};
 		httpReq.onload = function() {
 			if (httpReq.readyState === 4) {
@@ -90,6 +96,7 @@ if ( typeof(lib4riJsonFetch) != 'function' ) {
 					callback(httpReq.responseText);
 				} else {
 					console.error('Request failed (status: ' + httpReq.status + ') for: ' + urlFile);
+					lib4riSearchAnimLoad( bbName, ( 0 - parseInt(httpReq.status) ), 'Connection failed (' + httpReq.status + ')' );
 				}
 			}
 		};
@@ -153,7 +160,7 @@ if ( typeof(lib4riSearchFormTabInput) != 'function' ) {
 
 if ( typeof(lib4riSearchDelDivClass) != 'function' ) {
 	function lib4riSearchDelDivClass(bbHtml, bbClass = 'lib4ri-search-anim') {
-		// auxiliary, indended to remove <div class="lib4ri-search-anim...">anything-expect-of-div</div> from HTML code - not happy about this though...
+		// auxiliary, intended to remove <div class="lib4ri-search-anim...">anything-expect-of-div</div> from HTML code - not happy about this though...
 		let tmpA = '';
 		let tmpZ = '';
 		let pos = ( bbClass != '' ? bbHtml.indexOf('class="'+bbClass) : -1 );
@@ -170,13 +177,19 @@ if ( typeof(lib4riSearchDelDivClass) != 'function' ) {
 }
 
 if ( typeof(lib4riSearchAnimLoad) != 'function' ) {
-	function lib4riSearchAnimLoad(bbName,bbCount = 0) {
+	function lib4riSearchAnimLoad(bbName,bbCount = 0,bbText = '') {
 		let bbClass = ( ( bbName.indexOf('-bentobox-') > 0 ) ? 'lib4ri-search-anim-block' : 'lib4ri-search-anim-inline' );
 		let bbAnim = '<img src="' + lib4rSearchAnimData[0] + lib4rSearchAnimData[1] + '" style="' + lib4rSearchAnimData[2] + '">'; // ...or as CSS!?
 		let bbElem = document.getElementById(bbName);
-		if ( bbElem && bbAnim && lib4rSearchAnimData[1] ) {
-	//		bbElem.innerHTML = ( ( bbClass == 'lib4ri-search-anim-block' ) ? '' : bbElem.innerHTML + ' ' ) + '<div class="' + bbClass + '">' + bbAnim + '</div>';
-			bbElem.innerHTML = lib4riSearchDelDivClass(bbElem.innerHTML) + '<div class="' + bbClass + '">' + bbAnim + '</div>';
+		if ( bbElem ) {
+			if ( bbCount < -99 ) { // for errors, if bbCount is -100 or less it intended to hold HTTP request status.
+				if ( bbText == '' ) { bbText = 'Sorry, an error happened (' + Math.abs(bbCount) + ')'; }
+				bbElem.innerHTML = '<div class="lib4ri-bentobox-footer"><i>' + bbText + '</i></div>';
+			}
+			else if ( bbAnim && lib4rSearchAnimData[1] ) {
+		//		bbElem.innerHTML = ( ( bbClass == 'lib4ri-search-anim-block' ) ? '' : bbElem.innerHTML + ' ' ) + '<div class="' + bbClass + '">' + bbAnim + '</div>';
+				bbElem.innerHTML = lib4riSearchDelDivClass(bbElem.innerHTML) + '<div class="' + bbClass + '">' + bbAnim + '</div>';
+			}
 		}
 
 		return;	// for the time being, code below may overwrite content possibly added in meantime!
@@ -229,7 +242,7 @@ if ( typeof(lib4riSearchPerform) != 'function' ) {
 		}
 
 		setTimeout(
-			lib4riJsonFetch( lib4riSearchScript+apiArgStr, function(text){
+			lib4riJsonFetch( lib4riSearchScript+apiArgStr, bbName, function(text){
 				let jsonData = JSON.parse(text);
 				if ( jsonData && ( jsonData['html'] != undefined || jsonData['error'] != undefined ) ) {
 					if ( jsonData['error'] != undefined ) {
@@ -318,12 +331,20 @@ if ( typeof(lib4riSearchPerform) != 'function' ) {
 										lib4riSearchJournalDetail( dataAry[1], dataAry[3], 'swisscovery', 'available,linklist', idBase, idArea );
 									}, (300 * (b + Math.max(searchOffset,0) ) + 150) );
 								}
+								let bbElem = document.getElementById( lib4riSearchJournalLabelId );
 								if ( searchOffset < 1 && bbElemAry.length == 1 ) {
-									// Unfold automatically with only one journal area, in conjunction with 'Unfold All'
+									// Unfold automatically with only one journal area, and show 'close all'
 									setTimeout( function() {
 										let bbElem = document.getElementById(idToggle);
 										if ( bbElem ) { bbElem.click(); }
 									}, (300 * (b + Math.max(searchOffset,0) ) + 600) );
+									if ( bbElem && bbElem.title.indexOf('Journal') >= 0 ) {
+										setTimeout( function() { lib4riSearchJournalToggle(-1); }, 1500 );
+									}
+								} else if ( bbElemAry.length > 0 ) { // with more than 1 result show the 'open all' link:
+									if ( bbElem && bbElem.title.indexOf('Journal') >= 0 ) {
+										setTimeout( function() { lib4riSearchJournalToggle(2); }, 75 * bbElemAry.length + 250 );
+									}
 								}
 							}
 						}
@@ -331,7 +352,7 @@ if ( typeof(lib4riSearchPerform) != 'function' ) {
 
 
 				}
-			}),
+			} ),
 			(bbCount * 150 + 200)
 		);
 
@@ -390,8 +411,12 @@ if ( typeof(lib4riSearchLinkDirect) != 'function' ) {
 if ( typeof(lib4riSearchBentoboxTuner) != 'function' ) {
 	function lib4riSearchBentoboxTuner(searchFind = '',searchOffset = -1, searchLimit = -1) {
 		if ( searchFind && searchFind != '' ) {
-			let bbElem = document.getElementById('lib4ri-back-container');
-			if ( bbElem && bbElem.style && bbElem.style.display == 'none' ) { bbElem.style = 'display:auto'; }
+			let bbElem = document.getElementById('lib4ri-tab-container');
+			if ( bbElem && bbElem.style && bbElem.style.display == 'none' ) {
+				bbElem.style = 'display:auto';
+				// we have currently a fixed footer, as work-around let's just re-assign/reset the style attribute:
+				if ( bbElem = document.getElementById('lib4ri-ch-footer') ) { bbElem.style = 'width:100%'; }
+			}
 
 			let bbElemAry = document.getElementsByClassName('lib4ri-bentobox-result');
 			for(b=0;b<bbElemAry.length;b++) {
@@ -400,7 +425,7 @@ if ( typeof(lib4riSearchBentoboxTuner) != 'function' ) {
 				if ( parseInt(idTabNow.slice(-1)) != lib4riSearchTabHistory[0] ) {
 					continue;	// we are on the wrong tab!
 				}
-				
+
 				let bbAry = bbElemAry[b].id.trim().toLowerCase().split('-'); // e.g. lib4ri-bentobox-dora-psi
 				let argStr = '?req=json&api=' + bbAry[2];
 				if ( bbAry[3] != undefined && bbAry[3] != '' ) {
@@ -530,41 +555,64 @@ if ( typeof(lib4riSearchTabToggle) != 'function' ) {
 
 			}
 		}
-		// see if there is a label to update
-		bbElemAry = document.getElementsByClassName('lib4ri-bentobox-label');
-		if ( bbElemAry && bbElemAry[0] != undefined && lib4riSearchTerm && lib4riSearchTerm != null ) {
-			for(b=0;b<bbElemAry.length;b++) {
-				let idTabNow = bbElemAry[b].parentNode.parentNode.parentNode.id; // e.g. lib4ri-result-container-2
-				if ( parseInt(idTabNow.slice(-1)) == lib4riSearchTabHistory[0] ) {
-			/*
-					let bbPos = bbElemAry[b].innerHTML.indexOf('<!--');
-					if ( bbPos > 0 ) {
-						let bbTmp = bbElemAry[b].innerHTML.substring(bbPos+4).trim();
-						bbTmp = bbTmp.substring(0,bbTmp.indexOf('-->')).trim();
-						bbElemAry[b].innerHTML = bbElemAry[b].innerHTML.substring(0,bbPos).trim() + ' <!-- ' + bbTmp + ' -->' + bbTmp;
-						bbElemAry[b].innerHTML += ' <span class="lib4ri-bentobox-searchterm">' + lib4riSearchTerm + '</span>';
-					}
-			*/
-					if ( bbElemAry[b].id == 'lib4ri-bentobox-label-2-1-1' || bbElemAry[b].title == 'Journal List' ) {
-						let idToggle = 'journal-unfold-all';
-						bbElemAry[b].id = idToggle;
-						setTimeout( function() {
-							let bbElem = document.getElementById(idToggle);
-							// Only show the toggle link if there will be more than 1 result (since with we auto-unfold a sole one):
-							if ( bbElem && document.getElementsByClassName('lib4ri-journal-area').length != 1 ) { 
-								bbElem.innerHTML = '<div style="display:inline-block; width:50%; text-align:left; font-weight:700;">Journal List</div>';
-								bbElem.innerHTML += '<div style="display:inline-block; width:47%; text-align:right;"><a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaShowAll()" style="font-style:italic; font-weight:400;">unfold all</a></div>';
-							}
-						}, 3000	);
-					}
-			//		else if ( parseInt(idTabNow.slice(-1)) != 2 ) {	// not on journal tab
-			//			bbElemAry[b].innerHTML = '&nbsp;';
-			//		}
-				}
+
+		// See if there is a label to update - Unused (currently), removed again.
+		// bbElemAry = document.getElementsByClassName('lib4ri-bentobox-label');
+
+		setTimeout( "lib4riSearchLinkUpdate()", 250 );		// give it a heart-beat to let it toggle completely
+	}
+}
+
+if ( typeof(lib4riSearchJournalToggle) != 'function' ) {
+	function lib4riSearchJournalToggle(linkMode = 0) {
+		let bbElem = document.getElementById( lib4riSearchJournalLabelId );
+		// Only show the toggle link if there will be more than 1 result (since with we auto-unfold a sole one):
+		if ( bbElem && bbElem.title == 'Journal List' && document.getElementsByClassName('lib4ri-journal-area').length > 0 ) { 
+			bbElem.innerHTML = '<div style="display:inline-block; text-align:left; font-weight:700;">Journal List</div>';
+			if ( linkMode >= 1 ) {
+				bbElem.innerHTML += '<div style="display:inline-block; text-align:right; float:right; white-space:nowrap; padding-right:1ex;"><a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaShowAll(' + ( linkMode > 1 ? 350 : 175 ) + ')" style="font-style:italic; font-weight:400;">open all</a> &nbsp;</div>';
+			} else if ( linkMode === -1 ) {
+				bbElem.innerHTML += '<div style="display:inline-block; text-align:right; float:right; white-space:nowrap; padding-right:1ex;"><a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaCloseAll()" style="font-style:italic; font-weight:400;">close all</a> &nbsp;</div>';
 			}
 		}
+	}
+}
 
-		setTimeout( "lib4riSearchLinkUpdate()", 300 );		// give it a heart-beat to let it toggle completely
+if ( typeof(lib4riJournalAreaShowAll) != 'function' ) {
+	function lib4riJournalAreaShowAll(delay = 150) {
+		let bbCount = 0;
+		let bbElemAry = document.getElementsByClassName('lib4ri-journal-area-toggle-link');
+		for(b=0;b<bbElemAry.length;b++) {
+			// bbElemAry[b].id is for example: lib4ri-journal-area-toggle-12345
+			let idToggle = bbElemAry[b].id;
+			setTimeout( function() {
+				let bbElem = document.getElementById(idToggle);
+				let jArea = document.getElementById(idToggle.replace('-toggle-','-info-'));	// to get: lib4ri-journal-area-info-12345
+				if ( bbElem && jArea && jArea.style.display == 'none' ) { bbElem.click(); }
+			}, ( bbCount * delay ) );
+			bbCount++;
+		}
+		setTimeout( function() { lib4riSearchJournalToggle(0); }, 200 );
+		setTimeout( function() { lib4riSearchJournalToggle(-1); }, 2 * delay + 750 );
+	}
+}
+
+if ( typeof(lib4riJournalAreaCloseAll) != 'function' ) {
+	function lib4riJournalAreaCloseAll(delay = 100) {
+		let bbCount = 0;
+		let bbElemAry = document.getElementsByClassName('lib4ri-journal-area-toggle-link');
+		for(b=0;b<bbElemAry.length;b++) {
+			// bbElemAry[b].id is for example: lib4ri-journal-area-toggle-12345
+			let idToggle = bbElemAry[b].id;
+			setTimeout( function() {
+				let bbElem = document.getElementById(idToggle);
+				let jArea = document.getElementById(idToggle.replace('-toggle-','-info-'));	// to get: lib4ri-journal-area-info-12345
+				if ( bbElem && jArea && jArea.style.display != 'none' ) { bbElem.click(); }
+			}, ( bbCount * delay ) );
+			bbCount++;
+		}
+		setTimeout( function() { lib4riSearchJournalToggle(0); }, 200 );
+		setTimeout( function() { lib4riSearchJournalToggle(1); }, 2 * delay + 750 );
 	}
 }
 
@@ -579,8 +627,17 @@ if ( typeof(lib4riSearchFormAdd) != 'function' ) {
 			return;		// search form is existing with expected name
 		}
 
-		let searchFind = ( lib4riUrlParams.has('find') ? decodeURI(lib4riUrlParams.get('find')).replace(/(<([^>]+)>)|\?|,|\!/gi,'').replace(/\:\s*|\'|\+/g,' ').trim() : '' );
-
+		let searchFind = '';
+		if ( lib4riUrlParams.has('find') ) {
+			searchFind = decodeURI(lib4riUrlParams.get('find')).trim();
+			if ( searchFind != '' ) {
+				if ( parseInt(searchFind) == 10 && Math.abs(searchFind.indexOf('/') - 9) < 4 ) { // super DOI check :O
+					searchFind = searchFind.replace(/\s+/g,'');	// some DOIs may actually contain tags!
+				} else {
+					searchFind = searchFind.replace(/(<([^>]+)>)|\?|,|\!/gi,'').replace(/\s+/g,' ').trim();
+				}
+			}
+		}
 		let searchLimit = ( lib4riUrlParams.has('limit') && lib4riUrlParams.get('limit').trim() != '' ? parseInt(lib4riUrlParams.get('limit')) : '' );
 		let searchOffset = ( lib4riUrlParams.has('offset') && lib4riUrlParams.get('offset').trim() != '' ? parseInt(lib4riUrlParams.get('offset')) : '' );
 
@@ -716,17 +773,17 @@ if ( typeof(lib4riJournalAreaToggle) != 'function' ) {
 		let jToggle = document.getElementById(idToggle);
 		let jArea = document.getElementById(idToggle.replace('-toggle-','-info-'));		// to get: lib4ri-journal-area-info-12345
 
-		if ( jToggle.title.indexOf('Hide') >= 0 ) {
+		if ( jToggle.title.indexOf('Close') >= 0 ) {
 			jArea.style = "display:none;";
-			jToggle.title = 'Show details';
+			jToggle.title = ' 0pen '; // Tweak: Use a Zero here, or &Ocy; !
 			jToggle.innerHTML = '<span class="lib4ri-toggle-closed" />';
 			return;
 		}
 
-		let initLoad = ( jToggle.title.toLowerCase().indexOf('load') >= 0 ); // not to load it once again - 'load' we do at 1st time, then 'hide', then 'show'
+		let initLoad = ( jToggle.title.toLowerCase().indexOf('open') >= 0 ); // not to load it once again - 'Open' we just get at 1st time, then 'Close', then '0pen'
 
 		jArea.style = "display:auto;";
-		jToggle.title = 'Hide details';
+		jToggle.title = ' Close ';
 		jToggle.innerHTML = '<span class="lib4ri-toggle-opened" />';
 
 		if ( !initLoad ) { return; }
@@ -749,23 +806,6 @@ if ( typeof(lib4riJournalAreaToggle) != 'function' ) {
 		}
 		if ( !ord || ord == 99 ) {
 			lib4riSearchJournalDetail( issnList, almaId, 'doaj', 'publisher,issn,eissn,title,linklist,embargo-fund', idBase, idArea );
-		}
-	}
-}
-
-if ( typeof(lib4riJournalAreaShowAll) != 'function' ) {
-	function lib4riJournalAreaShowAll() {
-		let bbCount = 0;
-		let bbElemAry = document.getElementsByClassName('lib4ri-journal-area-toggle-link');
-		for(b=0;b<bbElemAry.length;b++) {
-			// bbElemAry[b].id is for example: lib4ri-journal-area-toggle-12345
-			let idToggle = bbElemAry[b].id;
-			setTimeout( function() {
-				let bbElem = document.getElementById(idToggle);
-				let jArea = document.getElementById(idToggle.replace('-toggle-','-info-'));	// to get: lib4ri-journal-area-info-12345
-				if ( bbElem && jArea && jArea.style.display == 'none' ) { bbElem.click(); }
-			}, ( bbCount * 350 ) );
-			bbCount++;
 		}
 	}
 }

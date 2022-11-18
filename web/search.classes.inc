@@ -38,11 +38,14 @@ class apiQueryUtils
 	
 	public $searchTermOrig;
 	public $searchTerm;
+	public $searchTermType;	// like 'doi', 'issn', 'isbn'
 	public $searchLimit;	// numerical
 	public $searchOffset;	// numerical
 	public $citeStyle = 'national-institute-of-health-research';
 	public $formName;
 	public $formTarget;
+	// public $timeNeeded;	// to store how we stay in touch with the remote server - DISABLED with current implementation this rather the time to connect only.
+	public $infoCurl;		// make this any array before makeQuery() to get tech. infos from cUrl.
 
 	public function __construct($apiLabel = '')
 	{
@@ -60,10 +63,68 @@ class apiQueryUtils
 		}
 	}
 
-	public function cleanTerm($searchTerm = '')
+	public function cleanTerm($searchTerm = '', $tuning = ['urldecode','strip_tags'] )
 	{
 		// clean-up for/against quotes+tags:
-		return implode(' ',array_map('trim',str_getcsv(preg_replace('/\s+/',' ',strip_tags(urldecode($searchTerm))),' ')));
+	//	return implode(' ',array_map('trim',str_getcsv(preg_replace('/\s+/',' ',strip_tags(urldecode($searchTerm))),' ')));
+		foreach( @array_slice($tuning,0) as $funcName ) {
+			if ( function_exists($funcName) ) {
+				$searchTerm = $funcName($searchTerm);
+			}
+		}
+		$searchTerm = trim( preg_replace('/\s+/',' ',$searchTerm) );
+		return $searchTerm;
+	}
+
+	public function getDoi($term = '', $atBeginn = false, $checkLevel = 0, $textDelimter = [' ','?','|'] )	// will return array with found DOIs, or FALSE if none
+	{
+		$try = trim( /* strip_tags(urldecode($term)) */ $term ); // remind DOIs like 10.1002/(sici)1521-4095(199902)11:2<175::aid-adma175>3.0.co;2-%23
+		if ( empty($try) || ( $atBeginn && intval($try) != 10 ) ) {	// assuming all DOIs start with 10.
+			return false;
+		}
+		$tmp = trim(urldecode($try)); // just to test for most obvious tags
+		foreach( array('<'.'?','<'.'script') as $tag ) {
+			if ( stripos($tmp,$tag) !== false ) {		// minimum tag check, since strip_tags() will be too strong - to be tuned
+				return false;
+			}
+		}
+		foreach( $textDelimter as $chr ) {
+			if ( empty($chr) || $chr == ' ' ) { continue; }
+			$try = str_replace($chr,' ',$try);	// our reg.exp. only will treat spaces as delimiter
+		}
+
+		$try = str_ireplace( ['%252f','%2f','/'], ['!?9?!','!?8?!','!?7?!'], $try );	// custom encoding of (encoded) slash
+		$regExAry = array(	/* DOI-detection based on https://www.crossref.org/blog/dois-and-matching-regular-expressions/ */
+			'/\b10\.\d{4,9}!?[7-9]?!.*\s+/i',	/* sufficient DOI detection perhaps, if a user enters just '10.10456/' */
+			'/\b10\.\d{4,9}!?[7-9]?![^\s]+\s+/i',
+			'/\b10\.\d{4,9}!?[7-9]?![-._;()/:A-Z0-9]+\s+/i',
+		);	// added \s+ everywhere as custom delimiter (or \b probably would work too)
+		$ary = [];
+		preg_match_all( $regExAry[max(min($checkLevel,sizeof($regExAry)-1),0)], $try.' ', $ary );
+
+		if ( sizeof($ary[0]) ) {
+			$ary[0] = str_ireplace( ['!?9?!','!?8?!','!?7?!'], ['%252f','%2f','/'], $ary[0] );	// better(?) revert custom slash-encoding
+			return array_map( function($t) { return rtrim($t); }, array_values($ary[0]) ); // we have at least 1 DOI !
+		}
+		return false;
+	}
+
+	public function getIssn($term = '', $atBeginn = false)	// will return array with found ISSNs, or FALSE if none
+	{
+		if ( $try = trim( strip_tags( urldecode($term) ) ) ) {
+			if ( !$atBeginn || strpos('+1234567890',$try[0]) ) {
+				$try = urldecode( str_ireplace( ['&minus;','&#8222;','&mdash;','&#8212;','&ndash;','&#8211;'], ['-','-','-','-','-','-'], rawurlencode($try) ) );
+				if ( strpos($try,'--') ) {
+					$try = preg_replace('/\-{2,}/','-',$try);
+				}
+				$ary = [];
+				preg_match_all('/\b\d{4}\s*\-\s*\d{4}(\.|\b)|\b\d{4}\s*\-\s*\d{3}[Xx](\.|\b)/',$try,$ary);	// allowing e.g. '1234 - 555X' (removing spaces below then)
+				if ( sizeof($ary[0]) ) {
+					return array_map( function($t) { return preg_replace('/\s+/','',$t); }, array_values($ary[0]) );
+				}
+			}
+		}
+		return FALSE;
 	}
 
 	public function cleanIssn($issn = '',$tuneFunc = 'strtoupper')
@@ -80,25 +141,55 @@ class apiQueryUtils
 
 	public function getSearchTerm($searchTerm = '')
 	{
-		$searchTerm = $this->cleanTerm($searchTerm);
 		if ( empty($searchTerm) ) {
-			$searchTerm = $this->cleanTerm($this->searchTerm);
+			$searchTerm = @trim($this->searchTerm);
 			if ( empty($searchTerm) ) {
-				$searchTerm = $this->cleanTerm($_GET['find']);
+				$searchTerm = @trim($_GET['find']);		// caution, may contain unwanted tags!
 			}
 		}
-		if ( @intval($searchTerm) && $this->searchTermOrig != $searchTerm ) { // let's see if this is an ISSN
-			$ary = array();
-			preg_match('/\d{4}\s*\-*\s*\d{4}|\d{4}\s*\-*\s*\d{3}X/',$searchTerm,$ary);
-			if ( @intval($ary[0]) ) {
-				$searchTerm = $this->cleanIssn($searchTerm);
+		if ( !websearch_ip_from('lib4ri') ) {
+			// for minimum safety, not accepting tagged input from outside Lib4RI members - to be tuned
+			foreach( ['2525253c','%25253c','%253c','%3c','<'] as $skip ) {
+				$pos = stripos($searchTerm,$skip);
+				if ( $pos === false ) { continue; }
+				$searchTerm = substr($searchTerm,0,$pos);
 			}
 		}
-		if ( !empty($searchTerm) && $this->searchTermOrig != $searchTerm ) {
-			$this->searchTermOrig = $searchTerm;
-			$this->searchTerm = $searchTerm;
+		$ary = $this->getDoi($searchTerm,true);	// try!
+		$type = '';
+		if ( $got = @trim($ary[0]) ) {
+			$type = 'doi';
+		} else { // fast DOI check, looking for "10.1234/" in "10.1234/any-thing.more":
+			$got = trim(strip_tags(urldecode($searchTerm))); // possibly tagged DOIs are checked, so now we can do this!
+
+			if ( strpos('+1234567890',$got[0]) ) {
+				$tmp = strtr($got,'[{(;:._)}]','||||||||||');	// accepted word/number limiters
+				$ary = [];
+				preg_match('/^\d+/', preg_replace('/[^\w|^\d]/','',$tmp) /* to only have 0-9 or a-z, space-less */, $ary );
+				if ( @strlen($ary[0]) ) {
+					if ( strlen($ary[0]) > 9 ) {
+						$type = 'isbn'; // ISBN10 or ISBN13 probably/hopefully
+						$got = strtok($tmp.'|','|');
+					} elseif ( strlen($ary[0]) > 7 /* ISSN like 0123-4567 */ || strtoupper(substr($ary[0],7,1)) == 'X' /* ISSN like 0123-789X */ ) {
+						$ary = $this->getIssn($got,true);
+						if ( $tmp = @trim($ary[0]) ) {
+							$type = 'issn';
+							$got = $tmp;
+						}
+					}
+				}
+			}
 		}
-		return $searchTerm;
+		if ( !empty($got) ) {
+			if ( $this->searchTermType != $type ) {
+				$this->searchTermType = $type;
+			}
+			if ( $this->searchTermOrig != $got ) {
+				$this->searchTermOrig = $got;
+				$this->searchTerm = $got;
+			}
+		}
+		return $got;
 	}
 
 	public function exitByError($eMsg = 'ERROR') {
@@ -228,6 +319,8 @@ class apiQueryUtils
 	{
 		if ( @intval($_GET['dev-test']) == 1 && websearch_ip_from('dev') ) { echo print_r( $apiUrl, true ); exit; }
 
+		// $this->timeNeeded = floatval( 0.0 - microtime(true) ); // negative, tmp!
+		$jsonCode = '';
 		if ( $timeout > 0 ) {		// with cURL:
 			$headerAry = $this->makeApiQueryHeader('',$userAgent);
 			$cUrl = curl_init();
@@ -235,8 +328,10 @@ class apiQueryUtils
 			curl_setopt($cUrl, CURLOPT_HTTPHEADER, $headerAry['http']['header'] );
 			curl_setopt($cUrl, CURLOPT_RETURNTRANSFER, 1 );
 			curl_setopt($cUrl, CURLOPT_TIMEOUT, $timeout );
-			curl_setopt($cUrl, CURLOPT_CONNECTTIMEOUT, $timeout );
-			$jsonCode = curl_exec($cUrl);
+			curl_setopt($cUrl, CURLOPT_CONNECTTIMEOUT, ( ( $timeout + 1 ) >> 1 ) );
+			if ( ( $jsonCode = curl_exec($cUrl) ) && @is_array($this->infoCurl) ) {
+				$this->infoCurl = curl_getinfo($cUrl);
+			}
 			curl_close($cUrl);
 			/*
 			if ( @is_array($http_response_header) && sizeof($http_response_header) ) {
@@ -254,38 +349,38 @@ class apiQueryUtils
 				}
 			}
 			*/
-			return $jsonCode;
-		}
-		// with PHP own functions:
-		$jsonCode = @file_get_contents($apiUrl,false,stream_context_create($this->makeApiQueryHeader()));
-		if ( @is_array($http_response_header) && sizeof($http_response_header) ) {
-			$resp0 = preg_replace('/\s+/','_',trim($http_response_header[0]));
-			if ( stripos($resp0,'HTTP') === false || ( !strpos($resp0.'_','_200_') && !strpos($resp0.'_','_OK_') ) ) {
-				// an error happened. Let's merge the real response with the http response:
-				/* $http_response_header : Array (
-					[0] => HTTP/1.1 200 OK
-					[1] => p3p: CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"
-					[2] => X-Request-ID: drRTg4WVSi
-					[3] => vary: accept-encoding
-					[4] => X-Exl-Api-Remaining: 29963
-					[5] => Access-Control-Allow-Origin: *
-					[6] => Access-Control-Allow-Methods: GET,POST,DELETE,PUT,OPTIONS
-					[7] => Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization
-					[8] => Content-Type: application/json;charset=UTF-8
-					[9] => Date: Wed, 16 Mar 2022 13:05:08 GMT
-					[10] => Connection: close
-					[11] => Server: CA-API-Gateway/9.0
-				)	*/
-				return json_encode( array(
-						'query_status' => 'error',
-						'query_header' => $this->makeApiQueryHeader(),
-						'query_url' => $apiUrl,
-						'json_data_from_api' => json_decode($jsonCode),
-						'http_response_header' => $http_response_header,
-					),
-					JSON_PRETTY_PRINT );
+		} else { // with PHP own functions:
+			$jsonCode = @file_get_contents($apiUrl,false,stream_context_create($this->makeApiQueryHeader()));
+			if ( @is_array($http_response_header) && sizeof($http_response_header) ) {
+				$resp0 = preg_replace('/\s+/','_',trim($http_response_header[0]));
+				if ( stripos($resp0,'HTTP') === false || ( !strpos($resp0.'_','_200_') && !strpos($resp0.'_','_OK_') ) ) {
+					// an error happened. Let's merge the real response with the http response:
+					/* $http_response_header : Array (
+						[0] => HTTP/1.1 200 OK
+						[1] => p3p: CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"
+						[2] => X-Request-ID: drRTg4WVSi
+						[3] => vary: accept-encoding
+						[4] => X-Exl-Api-Remaining: 29963
+						[5] => Access-Control-Allow-Origin: *
+						[6] => Access-Control-Allow-Methods: GET,POST,DELETE,PUT,OPTIONS
+						[7] => Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization
+						[8] => Content-Type: application/json;charset=UTF-8
+						[9] => Date: Wed, 16 Mar 2022 13:05:08 GMT
+						[10] => Connection: close
+						[11] => Server: CA-API-Gateway/9.0
+					)	*/
+					return json_encode( array(
+							'query_status' => 'error',
+							'query_header' => $this->makeApiQueryHeader(),
+							'query_url' => $apiUrl,
+							'json_data_from_api' => json_decode($jsonCode),
+							'http_response_header' => $http_response_header,
+						),
+						JSON_PRETTY_PRINT );
+				}
 			}
 		}
+		// $this->timeNeeded = ( microtime(true) + $this->timeNeeded );	// final, in milliseconds
 		return $jsonCode;
 	}
 
@@ -349,7 +444,7 @@ class apiQuerySLSP extends apiQueryUtils
 
 	public function getQueryField($searchTerm = '', $qField = '')
 	{
-		if ( $qField != 'any' ) { // with 'any' no real need to detect ISSN/ISBN !(?)
+		if ( $qField != 'title' ) { // with 'title' no real need to detect ISSN/ISBN !(?)
 			$ary = [];
 			$searchTerm = strtr($searchTerm,'[{(;:._)}]','||||||||||');	// accepted word/number limiters
 			$searchTerm = preg_replace('/[^\w|^\d]/','',$searchTerm); // to only have 0-9 or a-z, space-less
@@ -366,7 +461,7 @@ class apiQuerySLSP extends apiQueryUtils
 				}
 			}
 		}
-		return ( empty($qField) ? 'any' : $qField );
+		return ( empty($qField) ? 'title' : $qField );
 	}
 }
 
@@ -392,6 +487,9 @@ class apiQueryDORA extends apiQueryLib4ri
 
 	public function buildQuery($searchTermEnc = '')
 	{
+		// Islandora specific replacement required (see: /islandora_solr_search/includes/utilities.inc):
+		$searchTermEnc = str_ireplace( ['/','%2f','+','%2b'], ['~slash~','~slash~','~plus~','~plus~'], $searchTermEnc );
+
 		$searchQuery = 'dc.title:' . ( empty($searchTermEnc) ? '*' : '('.$searchTermEnc.')' ); // aux
 		if ( @!empty($this->apiSolrSimple) ) {
 			$searchQuery = str_replace(' ','%20OR%20',preg_replace('/\s/',' ',$this->apiSolrSimple));
@@ -399,39 +497,48 @@ class apiQueryDORA extends apiQueryLib4ri
 		}
 		return $searchQuery;
 	}
-	
+
 	public function apiUrl($searchTerm = '', $searchOffset = -1)
 	{
 		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
 		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
-		$searchTermEnc = rawurlencode($searchTerm);
-		if ( strpos($searchTermEnc,'%20') ) {
-			$searchTermEnc = '(' . $searchTermEnc . ')';		// in DORA we need brackets for multiple search terms!
+		$searchTerm = urldecode($searchTerm); // ensure DEcoded, tmp!
+		$apiUrl = 'https://www.dora.lib4ri.ch/' . ( empty($this->apiScope) ? '' : strtolower($this->apiScope).'/' ) . 'islandora/search/json_meta/';
+		if ( $this->searchTermType == 'doi' ) { // special case
+			$searchTermEnc = rawurlencode(rtrim($searchTerm,' *')) . '*';	//_mLt field supports a wildcard, but exclude it from being encoded!
+			$apiUrl .= '?f[]=mods_identifier_doi_mlt:' . str_replace('%','%5c%',$searchTermEnc); // backslash injection before encodings!
+			// for example: 
+			// https://www.dora.lib4ri.ch/empa/islandora/search/json_meta/?f[]=mods_identifier_doi_mlt:10.1002%5c%2F%5c%28sici%5c%291521-4095%5c%28199902%5c%2911%5c%3A2%5c%3C175%5c%3A%5c%3Aaid-adma175%5c%3E3.0.co%5c%3B2-%5c%2523
+		} else {
+			$searchTermEnc = rawurlencode( strpos($searchTerm,' ') ? '('.$searchTerm.')' /* DORA needs brackets for multiple search terms */ : $searchTerm );
+		//	$apiUrl .= 'PID:' . ( empty($this->apiScope) ? '*' : strtolower($this->apiScope).'%5c%3a*' );
+		//	$apiUrl .= '?limit=' . $this->searchLimit . '&f[3]=' . $this->buildQuery($searchTermEnc);
+			$apiUrl .= $this->buildQuery($searchTermEnc) . '?limit=' . $this->searchLimit . '&offset=' . $searchOffset;
+			// for example:
+			// https://www.dora-dev.lib4ri.ch/eawag/islandora/search/json_meta/PID:eawag%5c%3a*?limit=20&f[2]=mods_titleInfo_title_mt:(hydro)^5%20OR%20mods_abstract_ms:(hydro)^2%20OR%20dc.creator:(hydro)^2%20OR%20mods_extension_originalAuthorList_mt:(hydro)^2%20OR%20dc.contributor:(hydro)^1%20OR%20dc.type:(hydro)^1%20OR%20catch_all_MODS_mt:(hydro)^1%20OR%20PID_et:(hydro)^7
 		}
-		// to get the citiation of a given amount of pids:
-		$apiUrl = 'https://www.dora.lib4ri.ch/' . ( empty($this->apiScope) ? '' : strtolower($this->apiScope).'/' );
-	//	$apiUrl .= 'islandora/search/json_meta/PID:' . ( empty($this->apiScope) ? '*' : strtolower($this->apiScope).'%5c%3a*' );
-	//	$apiUrl .= '?limit=' . $this->searchLimit . '&f[3]=' . $this->buildQuery($searchTermEnc);
-		$apiUrl .= 'islandora/search/json_meta/' . $this->buildQuery($searchTermEnc) . '?limit=' . $this->searchLimit . '&offset=' . $searchOffset;
 		return $apiUrl;
-		// for example:
-		// https://www.dora-dev.lib4ri.ch/eawag/islandora/search/json_meta/PID:eawag%5c%3a*?limit=20&f[2]=mods_titleInfo_title_mt:(hydro)^5%20OR%20mods_abstract_ms:(hydro)^2%20OR%20dc.creator:(hydro)^2%20OR%20mods_extension_originalAuthorList_mt:(hydro)^2%20OR%20dc.contributor:(hydro)^1%20OR%20dc.type:(hydro)^1%20OR%20catch_all_MODS_mt:(hydro)^1%20OR%20PID_et:(hydro)^7
 	}
 
 	public function webUrl($searchTerm = '', $searchOffset = -1)
 	{
 		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
 		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
-		$searchTermEnc = rawurlencode($searchTerm);
-		if ( strpos($searchTermEnc,'%20') ) {
-			$searchTermEnc = '(' . $searchTermEnc . ')';		// in DORA we need brackets for multiple search terms!
+		$searchTerm = urldecode($searchTerm); // ensure DEcoded, tmp!
+		$webUrl = 'https://www.dora.lib4ri.ch/' . ( empty($this->apiScope) ? '' : strtolower($this->apiScope).'/' ) . 'islandora/search/';
+		if ( $this->searchTermType == 'doi' ) { // special case
+			$searchTermEnc = rawurlencode(rtrim($searchTerm,' *')) . '*';	//_mLt field supports a wildcard, but exclude it from being encoded!
+			$webUrl .= '?f[]=mods_identifier_doi_mlt:' . str_replace('%','%5c%',$searchTermEnc); // backslash injection before encodings!
+			// for example: 
+			// https://www.dora.lib4ri.ch/empa/islandora/search/?f[]=mods_identifier_doi_mlt:10.1002%5c%2F%5c%28sici%5c%291521-4095%5c%28199902%5c%2911%5c%3A2%5c%3C175%5c%3A%5c%3Aaid-adma175%5c%3E3.0.co%5c%3B2-%5c%2523
+		} else {
+			$searchTermEnc = rawurlencode( strpos($searchTerm,' ') ? '('.$searchTerm.')' /* DORA needs brackets for multiple search terms */ : $searchTerm );
+			$webUrl .= $this->buildQuery($searchTermEnc) . '?search_string=' . $searchTermEnc . '&extension=false';
+			$webUrl .= '&limit=' . $this->searchLimit . '&offset=' . $searchOffset;		// supported already!?
+			//	for example:
+			//	https://www.dora.lib4ri.ch/eawag/islandora/search/mods_titleInfo_title_mt:%28hydro%29%5E5%20OR%20mods_abstract_ms:%28hydro%29%5E2%20OR%20dc.creator:%28hydro%29%5E2%20OR%20mods_extension_originalAuthorList_mt:%28hydro%29%5E2%20OR%20dc.contributor:%28hydro%29%5E1%20OR%20dc.type:%28hydro%29%5E1%20OR%20catch_all_MODS_mt:%28hydro%29%5E1%20OR%20PID_et:%28hydro%29%5E7?search_string=hydro&extension=false
 		}
-		$webUrl = 'https://www.dora.lib4ri.ch/' . ( empty($this->apiScope) ? '' : strtolower($this->apiScope).'/' );
-		$webUrl .= 'islandora/search/' . $this->buildQuery($searchTermEnc) . '?search_string=' . $searchTermEnc . '&extension=false';
-		$webUrl .= '&limit=' . $this->searchLimit . '&offset=' . $searchOffset;		// supported already!?
 		return $webUrl;
-		//	for example:
-		//	https://www.dora.lib4ri.ch/eawag/islandora/search/mods_titleInfo_title_mt:%28hydro%29%5E5%20OR%20mods_abstract_ms:%28hydro%29%5E2%20OR%20dc.creator:%28hydro%29%5E2%20OR%20mods_extension_originalAuthorList_mt:%28hydro%29%5E2%20OR%20dc.contributor:%28hydro%29%5E1%20OR%20dc.type:%28hydro%29%5E1%20OR%20catch_all_MODS_mt:%28hydro%29%5E1%20OR%20PID_et:%28hydro%29%5E7?search_string=hydro&extension=false
 	}
 }
 
@@ -491,7 +598,7 @@ class apiQueryWoS extends apiQueryLib4ri
 		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset ) + 1;		// +1 since with WoS we need to indicate the first record
 		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
 		$searchTermEnc = rawurlencode($searchTerm);
-		$apiUrl = str_replace('###',$searchTermEnc,'https://wos-api.clarivate.com/api/woslite/?usrQuery=ALL%3d(###)');
+		$apiUrl = 'https://wos-api.clarivate.com/api/woslite/?usrQuery=' . ( $this->searchTermType != 'doi' ? 'ALL' : 'DO' ) . '%3d(' . $searchTermEnc . ')';
 		return ( $apiUrl . '&databaseId=WOS&count=' . $this->searchLimit . '&firstRecord=' . $searchOffset );
 		// for example (with cURL):
 		// curl -X GET "https://wos-api.clarivate.com/api/woslite/?databaseId=WOS&usrQuery=TI%3d(hydro)%20OR%20AB%3d(hydro)%20OR%20AU%3d(hydro)&count=10&firstRecord=1" -H "accept: application/json" -H "X-ApiKey: a123....789f"
@@ -502,7 +609,7 @@ class apiQueryWoS extends apiQueryLib4ri
 		// $searchOffset = ...	<== offset handling unknown for web links
 		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
 		$searchTermEnc = rawurlencode($searchTerm);
-		return str_replace('###',$searchTermEnc,'https://www.webofscience.com/wos/woscc/general-summary?query=ALL%3d(###)');
+		return ( 'https://www.webofscience.com/wos/woscc/general-summary?query=' . ( $this->searchTermType != 'doi' ? 'ALL' : 'DO' ) . '%3d(' . $searchTermEnc . ')' );
 		// for example:
 		// https://www.webofscience.com/wos/woscc/general-summary?query=TI%3d(hydro)%20OR%20AB%3d(hydro)%20OR%20AU%3d(hydro)
 	}
@@ -526,7 +633,7 @@ class apiQueryScopus extends apiQueryLib4ri
 		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset );
 		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
 		$searchTermEnc = rawurlencode($searchTerm);
-		$apiUrl = 'https://api.elsevier.com/content/search/scopus?query=TITLE-ABS-KEY-AUTH(' . $searchTermEnc . ')';
+		$apiUrl = 'https://api.elsevier.com/content/search/scopus?query=' . ( $this->searchTermType != 'doi' ? 'TITLE-ABS-KEY-AUTH' : 'DOI' ) . '(' . $searchTermEnc . ')';
 		// $apiUrl .= '&APIKey=' . $this->apiKey; // would work, but not required, since set up via header currently (safer?)
 		return ( $apiUrl . '&count=' . $this->searchLimit . '&start=' . $searchOffset . '&httpAccept=application/json' );
 		// for example:
@@ -539,7 +646,7 @@ class apiQueryScopus extends apiQueryLib4ri
 		$searchOffset = ( $searchOffset < 0 ? $this->searchOffset : $searchOffset ) + 1;	// +1, see/test example link!
 		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
 		$searchTermEnc = rawurlencode($searchTerm);
-		$webUrl = 'https://www.scopus.com/results/results.uri?src=s&st1=' . $searchTermEnc . '&sot=b&s=TITLE-ABS-KEY-AUTH(' . $searchTermEnc . ')';
+		$webUrl = 'https://www.scopus.com/results/results.uri?src=s&st1=' . $searchTermEnc . '&sot=b&s=' . ( $this->searchTermType != 'doi' ? 'TITLE-ABS-KEY-AUTH' : 'DOI' ) . '(' . $searchTermEnc . ')';
 		return( $webUrl . '&cc=' . $this->searchLimit . '&offset=' . $searchOffset . '&sid=new' );
 		// for example:
 		// https://www.scopus.com/results/results.uri?src=s&searchterm1=Filtration&sot=b&s=TITLE-ABS-KEY-AUTH(Filtration)&sid=new&cc=50&offset=51
@@ -619,7 +726,7 @@ class apiQuerySwisscovery extends apiQuerySLSP
 	//	$searchTermEnc = rawurlencode($searchTerm);		// note: http_build_query will encode it
 		$catAry = $this->apiCatAry[strtolower($this->apiScope)];
 		$apiUrlAry = array(
-			'q'      => $this->getQueryField($searchTerm) . ',contains,' . urldecode( empty($searchTerm) ? $this->searchTermOrig : $searchTerm ),
+			'q'      => $this->getQueryField($searchTerm,'any') . ',contains,' . urldecode( empty($searchTerm) ? $this->searchTermOrig : $searchTerm ),
 			'offset' => $searchOffset,
 			'limit'  => $this->searchLimit,
 			'lang'   => substr($this->apiLanguage,0,2),
@@ -678,7 +785,7 @@ class apiQuerySwisscovery extends apiQuerySLSP
 	//	$searchTermEnc = rawurlencode($searchTerm);		// note: http_build_query will encode it
 		$catAry = $this->apiCatAry[strtolower($this->apiScope)];
 		$webUrlAry = array(
-			'query'  => $this->getQueryField($searchTerm) . ',contains,' . urldecode($searchTerm),
+			'query'  => $this->getQueryField($searchTerm,'any') . ',contains,' . urldecode($searchTerm),
 			'offset' => $searchOffset,
 			'limit'  => $this->searchLimit,
 			'lang'   => substr($this->apiLanguage,0,2),
@@ -800,7 +907,7 @@ class apiQueryBook extends apiQuerySLSP
 	//	$searchTermEnc = rawurlencode($searchTerm);		// note: http_build_query will encode it
 		$catAry = $this->apiCatAry[strtolower($this->apiScope)];
 		$apiUrlAry = array(
-			'q'      => $this->getQueryField($searchTerm) . ',contains,' . urldecode( empty($searchTerm) ? $this->searchTermOrig : $searchTerm ),
+			'q'      => $this->getQueryField($searchTerm,'any') . ',contains,' . urldecode( empty($searchTerm) ? $this->searchTermOrig : $searchTerm ),
 			'offset' => $searchOffset,
 			'limit'  => $this->searchLimit,
 			'lang'   => substr($this->apiLanguage,0,2),
@@ -859,7 +966,7 @@ class apiQueryBook extends apiQuerySLSP
 	//	$searchTermEnc = rawurlencode($searchTerm);		// note: http_build_query will encode it
 		$catAry = $this->apiCatAry[strtolower($this->apiScope)];
 		$webUrlAry = array(
-			'query'  => $this->getQueryField($searchTerm) . ',contains,' . urldecode($searchTerm),
+			'query'  => $this->getQueryField($searchTerm,'any') . ',contains,' . urldecode($searchTerm),
 			'offset' => $searchOffset,
 			'limit'  => $this->searchLimit,
 			'lang'   => substr($this->apiLanguage,0,2),
@@ -1284,6 +1391,91 @@ class apiQueryWikipedia extends apiQueryUtils
 		return @intval($jsonAry['query']['searchinfo']['totalhits']);
 	}
 		
+}
+
+
+class apiQueryWikihit extends apiQueryUtils
+{
+	/* Main issue:
+		- Search term is evaluated by the API in case-sensitive manner.
+		- Wikipedia automatically applies some normalization on the serach term - it may not be sufficent though
+	So some kind of two-step API would be more appropriate:
+		- one step to find the right/best title: https://en.wikipedia.org/w/api.php?&action=opensearch&search=water%20research
+		- 2nd step to find the meta data for this title: https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=water%20research
+	For the moment we relay on the 'case sentive' dominance and are upper-casing the search term the user has entered
+	*/
+	
+	public $numFound;
+	public $apiUrlList;
+	public $wikiList;	// intended to be array, but do NOT initate it! Example: https://en.wikipedia.org/w/api.php?&action=opensearch&search=Functional%20Ecology
+
+	public function __construct($apiLabel = '')
+	{
+		$this->apiName = 'wikihit';		// 'hit' in sense of 'best suggestion'
+		$this->apiHost = 'wikimedia';
+		$this->apiLabel = 'Wikipedia';		//  will serve a ID for this type of API request!
+		$this->apiScope = '';
+		$this->apiUrlList = 'https://en.wikipedia.org/w/api.php?&action=opensearch&redirects=resolve&search=';	
+		parent::__construct($this->apiLabel);
+	}
+
+	public function getList($searchTerm = '')
+	{
+		if ( empty($searchTerm) ) {
+			$this->setupParam();		// refresh!
+			$searchTerm = ( empty($this->searchTermOrig) ? 'rainbow' : $this->searchTermOrig );
+		}
+		$searchTerm = urldecode(rawurldecode($searchTerm)); // get rid if any encodings!
+
+		if ( @!empty($this->wikiList[0]) /* always underscore for space */ && strtolower(strtr($this->wikiList[0],'_',' ')) == strtolower($searchTerm) ) {
+			return $this->wikiList;		// deliver the cached one!
+		}
+
+		$this->wikiList = json_decode( $this->makeQuery( $this->apiUrlList . $searchTerm ) );       // cache it
+		/* What we get/return is an Array (
+				[0] => Functional_Ecology
+				[1] => Array (
+						[0] => Functional ecology
+						[1] => Functional Ecology (journal)
+					)
+				[2] => Array (
+						[0] => 
+						[1] => 
+					)
+				[3] => Array (
+						[0] => https://en.wikipedia.org/wiki/Functional_ecology
+						[1] => https://en.wikipedia.org/wiki/Functional_Ecology_(journal)
+					)
+				)
+		*/
+		return $this->wikiList;
+	}
+
+	public function apiUrl($searchTerm = '', $searchOffset = -1) // for example: https://en.wikipedia.org/api/rest_v1/page/summary/Water_Research
+	{
+		$jsonAry = $this->getList($searchTerm);
+		return ( 'https://en.wikipedia.org/api/rest_v1/page/summary/' . @strtr($jsonAry[1][0],' ','_') );
+	}
+
+	public function webUrl($searchTerm = '', $searchOffset = -1) // for example: https://en.wikipedia.org/wiki/Water_Research
+	{
+		$jsonAry = $this->getList($searchTerm);
+		return @strval($jsonAry[3][0]);
+	}
+
+	public function queryNow($searchTerm = '')
+	{
+		$apiUrl = $this->apiUrl( empty($searchTerm) ? 'dreamland' : $searchTerm );
+		$jsonData = $this->makeQuery( $apiUrl );
+		$jsonAry = $this->getList($searchTerm);
+		$this->numFound = ( @empty($jsonAry[1][0]) ? 0 : 1 );
+		return $jsonData;
+	}
+
+	public function getNumFound()		// only call after queryNow() !
+	{
+		return $this->numFound;
+	}
 }
 
 

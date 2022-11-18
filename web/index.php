@@ -20,7 +20,7 @@ if ( !( @include_once($dirBase.'search.protect.inc') ) ) { // trivial access che
 echo '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">';
 
 
-if ( $html = @file_get_contents($dirBase.'search/search.header.lib4ri-ch.html') ) {
+if ( $html = @file_get_contents($dirBase.'search/search.header.html') ) {		// still needed?
 	echo str_replace('lib4ri-websearch.css','lib4ri-websearch.new.css',$html);
 }
 
@@ -28,14 +28,17 @@ if ( $html = @file_get_contents($dirBase.'search/search.header.lib4ri-ch.html') 
 echo '<body>';
 
 
-if ( $html = @file_get_contents($dirBase.'search/search.navigation.html') ) {
-	echo str_replace('lib4ri-websearch.css','lib4ri-websearch.new.css',$html);
-}
+echo '<div id="lib4ri-ch-navigation">';
+if ( $html = @file_get_contents($dirBase.'search/search.navigation.html') ) { echo $html; }
+echo '</div>';
 
-if ( $html = @file_get_contents($dirBase.'search/drupal.node-code.html') ) {
-	echo str_replace('lib4ri-websearch.css','lib4ri-websearch.new.css',$html);
-}
+echo '<div id="lib4ri-ch-websearch" style="margin-bottom:4ex;">';
+if ( $html = @file_get_contents($dirBase.'search/drupal.node-code.php?css=no') ) { echo $html; }
+echo '</div>';
+
+echo '<div id="lib4ri-ch-footer" style="position:fixed; bottom:0px; width:100%">';
+if ( $html = @file_get_contents($dirBase.'search/search.footer.html') ) { echo $html; }
+echo '</div>';
 
 
 echo '</body></html>';
-?>

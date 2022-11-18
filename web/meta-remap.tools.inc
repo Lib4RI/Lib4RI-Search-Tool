@@ -197,4 +197,3 @@ function websearch_json_value_by_path( $jsonFromApi, $metaPath ) {
 	eval('$eVal = ( @( $jsonFromApi'.$metaPath.' !== null ) ? strval($jsonFromApi'.$metaPath.') : -1 );');
 	return $eVal;
 }
-

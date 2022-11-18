@@ -52,3 +52,4 @@
 			$json4cp[$resIdx]['author'] = $autAuxAry;
 		}
 	}
+

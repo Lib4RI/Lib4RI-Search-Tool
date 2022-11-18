@@ -3,10 +3,23 @@
 	var lib4riSearchJournalLabelId = 'lib4ri-bentobox-label-2-1-1';
 //--></script>
 
-<script type="text/javascript" src="/web/js/lib4ri-bentobox.js?t=22-10-31-b"></script>
 
+<?php
+$host = ''; // if request however use the absolute host link:
+if ( ( $got = @strip_tags($_GET['abs']) ) && $got != 'no' ) {
+	$host = ( @empty($_SERVER['HTTP_X_FORWARDED_PROTO']) ? 'http' : $_SERVER['HTTP_X_FORWARDED_PROTO'] ) . '://' . $_SERVER['HTTP_HOST'];
+}
 
-<link rel="stylesheet" type="text/css" href="/web/css/lib4ri-websearch.css">
+// load CSS by default:
+if ( ( $got = @strip_tags($_GET['css']) ) && $got != 'no' ) {
+	echo '<link rel="stylesheet" type="text/css" href="' . $host . '/web/css/lib4ri-websearch.css?t=' . $got . '">' . "\r\n";
+}
+
+// load JavaScript by default:
+if ( ( $got = @strip_tags($_GET['js']) ) && $got != 'no' ) {
+	echo '<script type="text/javascript" src="' . $host . '/web/js/lib4ri-bentobox.js?t=' . $got . '"></script>' . "\r\n";
+}
+?>
 
 
 <div id="lib4ri-websearch-body">

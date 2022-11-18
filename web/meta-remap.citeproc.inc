@@ -84,7 +84,7 @@ $metaMap['citeproc']['dora'] = array(
 		),
 	),
 	'publisher' => 'publisher',
-	'container-title' => 'journal',		/* there is also journal_'abbreviated'
+	'container-title' => 'journal',		/* there is also 'journal_abbreviated'	*/
 	'volume' => 'volume',
 	'issue' => 'issue',
 	//		 => 'pg_start',	
@@ -202,8 +202,8 @@ $metaMap['citeproc']['slsp'] = array(
 	'_cite_1_by_1' => true,			/* true: CiteProc will render each result individually, not to make one failed rendering loose all the results */
 	'id'    => 'pnx->control->recordid[0]',	/* = alma991114283799705501 */
 	'mms'   => 'pnx->display->relation[0]',	/* Oddity: to find number-part of real 'id', see prepare function */
-	'DOI'   => 'pnx->display->identifier[0]',
-	'doi'   => 'pnx->display->identifier[0]',
+	'DOI'   => 'pnx->addata->doi[0]|pnx->display->identifier[0]',
+	'doi'   => 'pnx->addata->doi[0]|pnx->display->identifier[0]',		/* often identifier[0] is a weird text list with multiple IDs inside!? */
 	'title' => 'pnx->display->title[0]', 
 	'type'  => 'pnx->addata->genre[0]',
 	'publisher' => 'pnx->addata->pub[0]|pnx->display->publisher[0]',
@@ -223,8 +223,8 @@ $metaMap['citeproc']['slsp'] = array(
 	'url'  => '@id',
 	'ISSN'   => 'pnx->addata->issn[0]',
 	'issn'   => 'pnx->addata->issn[0]',
-	'e-ISSN' => 'pnx->addata->issn[1]|pnx->addata->eissn[0]',	/*	https://api-eu.hosted.exlibrisgroup.com/primo/v1/search?q=issn,contains,1364-5544&qInclude=facet_rtype%2Cexact%2Cjournals&tab=41SLSP_LIB_DN_CI&search_scope=DN_and_CI&vid=41SLSP_LIB:GO&offset=0&apikey=7777....ffff& */
-	'e-issn' => 'pnx->addata->issn[1]|pnx->addata->eissn[0]',	/*	https://api-eu.hosted.exlibrisgroup.com/primo/v1/search?q=issn,contains,1364-5544&qInclude=facet_rtype%2Cexact%2Cjournals&tab=41SLSP_LIB_DN_CI&search_scope=DN_and_CI&vid=41SLSP_LIB:GO&offset=0&apikey=7777....ffff& */
+	'e-ISSN' => 'pnx->addata->issn[1]|pnx->addata->eissn[0]',	/*	https://api-eu.hosted.exlibrisgroup.com/primo/v1/search?q=issn,contains,1364-5544&qInclude=facet_rtype%2Cexact%2Cjournals&tab=41SLSP_LIB_DN_CI&search_scope=DN_and_CI&vid=41SLSP_LIB:GO&offset=0&apikey=l8xx853251297c1d41f68feea590583136d5& */
+	'e-issn' => 'pnx->addata->issn[1]|pnx->addata->eissn[0]',	/*	https://api-eu.hosted.exlibrisgroup.com/primo/v1/search?q=issn,contains,1364-5544&qInclude=facet_rtype%2Cexact%2Cjournals&tab=41SLSP_LIB_DN_CI&search_scope=DN_and_CI&vid=41SLSP_LIB:GO&offset=0&apikey=l8xx853251297c1d41f68feea590583136d5& */
 	'source-id' => 'pnx->display->mms[0]|pnx->control->sourcerecordid[0]',
 	'group-id'  => 'pnx->facets->frbrgroupid[0]',
 );
@@ -232,7 +232,7 @@ $metaMap['citeproc']['slsp'] = array(
 $websearch_citeproc_slsp_prepare_mms = function( $apiItem ) {
 	// it may be that sometime the 'id' is resp. starts with 9900... (should be 9911...) then there is some chance
 	// that the number-part of the the real id can be found after '$$Z' in the realation string!!(?) - Example:
-	// https://api-eu.hosted.exlibrisgroup.com/primo/v1/search?q=issn,contains,0168-9002&qInclude=facet_rtype%2Cexact%2Cjournals&tab=41SLSP_LIB_DN_CI&search_scope=DN_and_CI&vid=41SLSP_LIB:GO&offset=0&apikey=7777....ffff&
+	// https://api-eu.hosted.exlibrisgroup.com/primo/v1/search?q=issn,contains,0168-9002&qInclude=facet_rtype%2Cexact%2Cjournals&tab=41SLSP_LIB_DN_CI&search_scope=DN_and_CI&vid=41SLSP_LIB:GO&offset=0&apikey=l8xx853251297c1d41f68feea590583136d5&
 	$pos = strpos($apiItem,'$$Z');
 	if ( $pos === false ) { return ''; }
 	return trim( strtok(substr($apiItem,$pos+3).'$','$') );		// should be a number like 9911... or perhaps alma9911...
@@ -270,14 +270,15 @@ $websearch_citeproc_slsp_prepare_title = function( $nameString ) {
 
 $websearch_citeproc_slsp_polish_title = function( $cslItem, $renderedText ) {
 	if ( !( $id = @trim( $cslItem->id ) ) ) {	// e.g.: alma99116721922705522
-		return $renderedText;
+//		return $renderedText;
+		$id = @trim( $cslItem->mms );
 	}
 	if ( !( $vid = @urlencode($GLOBALS['$apiVid']) ) ) {
 		$vid = urlencode('41SLSP_LIB:GO');
 	}
 	return '<a target="_blank" href="https://lib4ri.swisscovery.slsp.ch/discovery/fulldisplay?vid=' . $vid . '&docid=' . $id . '">' . $renderedText . '</a>';
 };
- 
+
 
 // ===============================================================================================================
 // Web of Science - Widely untested!
