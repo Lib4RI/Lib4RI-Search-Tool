@@ -444,7 +444,7 @@ class apiQuerySLSP extends apiQueryUtils
 
 	public function getQueryField($searchTerm = '', $qField = '')
 	{
-		if ( $qField != 'title' ) { // with 'title' no real need to detect ISSN/ISBN !(?)
+		if ( !in_array(strtolower($qField),['issn','isbn']) ) {
 			$ary = [];
 			$searchTerm = strtr($searchTerm,'[{(;:._)}]','||||||||||');	// accepted word/number limiters
 			$searchTerm = preg_replace('/[^\w|^\d]/','',$searchTerm); // to only have 0-9 or a-z, space-less
@@ -461,7 +461,7 @@ class apiQuerySLSP extends apiQueryUtils
 				}
 			}
 		}
-		return ( empty($qField) ? 'title' : $qField );
+		return ( empty($qField) ? 'any' : $qField );
 	}
 }
 

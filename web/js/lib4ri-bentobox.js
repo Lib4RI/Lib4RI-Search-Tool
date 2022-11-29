@@ -5,7 +5,7 @@ if ( lib4riSearchByReload == undefined ) {
 }
 
 if ( lib4riSearchScript == undefined ) {
-	var lib4riSearchScript = '/web/search.handler.php';
+	var lib4riSearchScript = 'https://search.lib4ri.ch/web/search.handler.php';
 }
 
 if ( lib4riSearchJournalLabelId == undefined ) {	// currently: the div in the 2nd tab where 'Journal List' is written
@@ -563,16 +563,18 @@ if ( typeof(lib4riSearchTabToggle) != 'function' ) {
 	}
 }
 
-if ( typeof(lib4riSearchJournalToggle) != 'function' ) {
+if ( typeof(lib4riSearchJournalToggle) != 'function' ) {		// Needs to revised!(?) And corresponding link element should gets its own ID probably!
 	function lib4riSearchJournalToggle(linkMode = 0) {
 		let bbElem = document.getElementById( lib4riSearchJournalLabelId );
 		// Only show the toggle link if there will be more than 1 result (since with we auto-unfold a sole one):
-		if ( bbElem && bbElem.title == 'Journal List' && document.getElementsByClassName('lib4ri-journal-area').length > 0 ) { 
-			bbElem.innerHTML = '<div style="display:inline-block; text-align:left; font-weight:700;">Journal List</div>';
-			if ( linkMode >= 1 ) {
-				bbElem.innerHTML += '<div style="display:inline-block; text-align:right; float:right; white-space:nowrap; padding-right:1ex;"><a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaShowAll(' + ( linkMode > 1 ? 350 : 175 ) + ')" style="font-style:italic; font-weight:400;">open all</a> &nbsp;</div>';
-			} else if ( linkMode === -1 ) {
-				bbElem.innerHTML += '<div style="display:inline-block; text-align:right; float:right; white-space:nowrap; padding-right:1ex;"><a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaCloseAll()" style="font-style:italic; font-weight:400;">close all</a> &nbsp;</div>';
+		if ( bbElem && bbElem.title.indexOf('Journal List') >= 0 && document.getElementsByClassName('lib4ri-journal-area').length > 0 ) {
+			if ( bbElem = document.getElementById( lib4riSearchJournalLabelId.replace('-label-','-control-') ) ) {
+				if ( linkMode >= 1 ) {
+					bbElem.innerHTML = '<a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaShowAll(' + ( linkMode > 1 ? 350 : 175 ) + ')" class="lib4ri-bentobox-area-label-toggle-link">close all</a></div>';
+				} else if ( linkMode === -1 ) {
+					bbElem.innerHTML = '<a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaCloseAll()" class="lib4ri-bentobox-area-label-toggle-link">close all</a></div>';
+				}
+				bbElem.style.display = ( ( linkMode === 0 ) ? 'none' : 'auto' );
 			}
 		}
 	}

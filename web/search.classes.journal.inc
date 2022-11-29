@@ -755,8 +755,11 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 								if ( stripos($req,'when_required_by') !== false ) { $num++; }
 							}
 							if ( sizeof($ary) > $num ) { // 2022-10-04: do not show prerequisites if all prerequisites are conditional
-								$ary = array_map( function($h) { return '<li class="lib4ri-li-wide">'.$h.'</li>'; }, $ary );
+								$ary = array_filter( array_values( $oaData['prerequisites']['prerequisites_phrases']) );
+								$ary = array_map( function($a) { return '<li class="lib4ri-li-wide">'.$a['phrase'].'</li>'; }, $ary );
+								$tmp .= '<ul class="lib4ri-ul-flat"><li class="lib4ri-li-wide">';
 								$tmp .= 'Prerequisite' . ( sizeof($ary) == 1 ? '' : 's' ) . ': <ul class="lib4ri-ul-flat">' . implode('',$ary) . '</ul>';
+								$tmp .= '</li></ul>';
 							}
 						}
 						$htmlAry = array( $tmp );

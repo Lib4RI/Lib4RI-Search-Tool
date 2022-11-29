@@ -1,15 +1,7 @@
 /* Desktop CSS definitions */
 
-// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-// mainly layout/formatting related:
-
-// h1,h2,h3 { color: #1A9481; font-weight: 700; }
-
-// a:link	{ color: #1A9481; }
-// a:visited { color: #0A7461; }
-// a:hover	{ color: #2AB491; }
-// a:focus { color: #2AB491; }
-// a:active {color: #2AB491; }
+/* vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv */
+/* mainly layout/formatting related: */
 
 a.lib4ri-search-tab-link {     
 	display: inline-block;
@@ -119,8 +111,9 @@ lib4ri-arrow-trend::after {
 }
 .csl-left-margin { display: none; }
 
-// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-// mainly structure related:
+
+/* vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv */
+/* mainly structure related: */
 
 div {
 	vertical-align: top;
@@ -134,27 +127,25 @@ div {
 #lib4ri-tab-container {
 	width: 100%;
 	text-align: center;
-//	background-color: #e8f8e0;
 	padding: 1ex 1ex 1ex 1ex;
 }
+
+/* obsolte, now lib4ri-tab-container - do not use the *ID* anymore */
 #lib4ri-back-container {
-	// obsolte, now lib4ri-tab-container - do not use the *ID* anymore
 	width: 100%;
 	text-align: center;
-//	background-color: #e8f8e0;
 	padding: 1ex 1ex 1ex 1ex;
 }
 
 #lib4ri-tab-header-container {
 	text-align:center;
 	width:100%;
-//	background-color:#e8f8e0;
 }
+
+/* obsolete */
 #lib4ri-alltab-container {
-	// obsolete
 	text-align:center;
 	width:100%;
-//	background-color:#e8f8e0;
 }
 
 #lib4ri-search-container {
@@ -167,7 +158,6 @@ div {
 #lib4ri-search-form-container {
 	padding: 0.5ex .5ex .5ex .5ex;
 	margin: 0.5ex .5ex .5ex .5ex;
-//	background-color: #f6f6f2;
 	text-align: center;
 	width: 98.5%; 
 }
@@ -264,9 +254,31 @@ div {
 .lib4ri-bentobox-label {
 	font-weight: 700;
 	line-height: 4ex; 
-//	color: #646860; 
 	padding: 0 0 0.5ex 3.25ex;
 }
+.lib4ri-bentobox-label {
+	font-weight: 700;
+	line-height: 4ex; 
+	padding: 0 0 0.5ex 3.25ex;
+}
+.lib4ri-bentobox-control {
+	float: right;
+	padding: 1ex 1ex 0 0;
+}
+
+/* test: new variant where we have the label area/'row' (on top of the bentobox) split in two parts */
+.lib4ri-bentobox-area-label-text {
+	font-weight: 700;
+	line-height: 4ex; 
+	padding: 0 0 0.5ex 3.25ex;
+}
+
+/* test: new variant where we have the label area/'row' (on top of the bentobox) split in two parts */
+.lib4ri-bentobox-area-label-toggle-link {
+	font-style: italic; 
+	font-weight: 400;
+}
+
 .lib4ri-search-anim-block {
 	display: inline-block;
 	height: 8ex;
@@ -287,7 +299,7 @@ div {
 .lib4ri-bentobox-header {
 	display:none;
 }
-.lib4ri-bentobox-column-header{
+.lib4ri-bentobox-column-header {
 	padding-top: 5ex;
 }
 .lib4ri-bentobox-searchterm {
@@ -498,7 +510,6 @@ div {
 		padding: 1.3ex 0 1.2ex 0 !important;
 		border: 1px solid #583;
 		background-color: #e8e8e4;
-//		color: #aaa;
 		position: relative;
 		z-index: 16;
 	}
@@ -507,7 +518,6 @@ div {
 		padding: 1.3ex 0 1.2ex 0 !important;
 		border: 1px solid #8b6;
 		background-color: #fCfCf8;
-//		color: #333;
 		position: relative;
 		z-index: 18;
 	}
@@ -533,4 +543,3 @@ div {
 		width: 80%; 
 	}
 }
-
