@@ -1,10 +1,18 @@
 
-Intended installation directory for CiteProc:
+CiteProc download:
 	https://github.com/seboettg/citeproc-php
 
-Idea was not to have Citeproc inside our web (search) installation directly,
-and to simply set a symbolic link to that directory:
+Files changed:
+	- citeproc/vendor/seboettg/citeproc-php/src/CiteProc.php
+	- citeproc/vendor/seboettg/citeproc-php/src/Constraint/IsNumeric.php
+	The original files still exist as *.bak files.
+
+Installation approach:
+	Idea was not to have Citeproc files inside our 'web' (search) installation/directory
+	directly and move CiteProc files into a separate/'paralell' directory in order to be
+	able to update CiteProc independingly.
+	The PHP code still expects to have a 'citeproc' directory inside the 'web' directory',
+	but instead of really having this, we will set a symbolic link to the real directory:
 	cd /var/www/html/web
 	sudo ln -s ../citeproc ./citeproc
-
 
