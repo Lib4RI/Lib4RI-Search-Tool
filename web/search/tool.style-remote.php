@@ -155,13 +155,13 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 					<label class="lib4ri-bentobox-label">Patents</label>
 					<div id="lib4ri-bentobox-linkset-1-2-3" class="lib4ri-bentobox-linkset" title="more:Patents:Derwent;more:Patents:Espacenet;more:Patents:Google Patents"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
-				<div class="lib4ri-bentobox-container">
+				<!-- work in progress, ETA Dec'22/Jan'23 --><!-- div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Wikipedia</label>
 					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-wikipedia"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
-				</div>
+				</div -->
 				<div class="lib4ri-bentobox-container">
-					<label class="lib4ri-bentobox-label">Further Reference Works</label>
-					<div id="lib4ri-bentobox-linkset-1-2-4" class="lib4ri-bentobox-linkset" title="references:Wikipedia – DE;references:Wikipedia – FR;references:Wikipedia – IT;references:main:Britannica;;references:Science & Technology:ChemSpider;references:Science & Technology:Elsevier Reference;references:Science & Technology:Springer Materials;references:Science & Technology:Springer Reference;references:Science & Technology:Wiley Reference"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<label class="lib4ri-bentobox-label"><!-- Further -->Reference Works</label>
+					<div id="lib4ri-bentobox-linkset-1-2-4" class="lib4ri-bentobox-linkset" title="references:Wikipedia – EN;references:Wikipedia – DE;references:Wikipedia – FR;references:Wikipedia – IT;references:main:Britannica;;references:Science & Technology:ChemSpider;references:Science & Technology:Elsevier Reference;references:Science & Technology:Springer Materials;references:Science & Technology:Springer Reference;references:Science & Technology:Wiley Reference"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Dissertations</label>
@@ -207,8 +207,13 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label" id="lib4ri-bentobox-label-2-1-1" title="Journal List">Lib4RI&#39;s Journal List</label>
-					<div class="lib4ri-bentobox-control" id="lib4ri-bentobox-control-2-1-1"><!-- rather special/unique case, to be optimized!(?) --></div>
+					<div class="lib4ri-bentobox-control" id="lib4ri-bentobox-control-2-1-1">&nbsp;<!-- special case / keep &nbsp; / to be tuned --></div>
 					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-journal-dn_and_ci"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+				</div>
+
+				<div class="lib4ri-bentobox-container">
+					<label class="lib4ri-bentobox-label">Journal not found? - Try this:</label>
+					<div id="lib4ri-bentobox-linkset-2-1-2" class="lib4ri-bentobox-linkset" title="journals:*" _title="journals:SHERPA/RoMEO;journals:DOAJ - Journals"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 			</div>
 
@@ -218,10 +223,6 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Browse Journals by Subject</label><!-- temporary inline CSS, since under construction -->
 					<div id="lib4ri-bentobox-linkset-2-3-1" class="lib4ri-bentobox-noapi" style="border: 1px solid #7a5; padding: .5ex 1ex .5ex 3ex;"><div style="height:85px; margin-left:-3px; background:url(https://svgsilh.com/png-512/150271-3f51b5.png) no-repeat; background-size:105px; background-position:left; vertical-align:top; padding:20px 0 0 115px;">Coming Soon!</div></div>
-				</div>
-				<div class="lib4ri-bentobox-container">
-					<label class="lib4ri-bentobox-label">Journal not found? - Try this:</label>
-					<div id="lib4ri-bentobox-linkset-2-3-2" class="lib4ri-bentobox-linkset" title="journals:*" _title="journals:SHERPA/RoMEO;journals:DOAJ - Journals"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 			</div>
 

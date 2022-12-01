@@ -15,4 +15,3 @@ Installation approach:
 	but instead of really having this, we will set a symbolic link to the real directory:
 	cd /var/www/html/web
 	sudo ln -s ../citeproc ./citeproc
-

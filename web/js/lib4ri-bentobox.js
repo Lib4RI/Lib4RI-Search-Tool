@@ -5,7 +5,7 @@ if ( lib4riSearchByReload == undefined ) {
 }
 
 if ( lib4riSearchScript == undefined ) {
-	var lib4riSearchScript = 'https://search.lib4ri.ch/web/search.handler.php';
+	var lib4riSearchScript = '/web/search.handler.php';
 }
 
 if ( lib4riSearchJournalLabelId == undefined ) {	// currently: the div in the 2nd tab where 'Journal List' is written
@@ -570,11 +570,11 @@ if ( typeof(lib4riSearchJournalToggle) != 'function' ) {		// Needs to revised!(?
 		if ( bbElem && bbElem.title.indexOf('Journal List') >= 0 && document.getElementsByClassName('lib4ri-journal-area').length > 0 ) {
 			if ( bbElem = document.getElementById( lib4riSearchJournalLabelId.replace('-label-','-control-') ) ) {
 				if ( linkMode >= 1 ) {
-					bbElem.innerHTML = '<a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaShowAll(' + ( linkMode > 1 ? 350 : 175 ) + ')" class="lib4ri-bentobox-area-label-toggle-link">close all</a></div>';
+					bbElem.innerHTML = '<a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaShowAll(' + ( linkMode > 1 ? 350 : 175 ) + ')" class="lib4ri-bentobox-area-label-toggle-link">open all</a>';
 				} else if ( linkMode === -1 ) {
-					bbElem.innerHTML = '<a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaCloseAll()" class="lib4ri-bentobox-area-label-toggle-link">close all</a></div>';
+					bbElem.innerHTML = '<a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaCloseAll()" class="lib4ri-bentobox-area-label-toggle-link">close all</a>';
 				}
-				bbElem.style.display = ( ( linkMode === 0 ) ? 'none' : 'auto' );
+				bbElem.style.display = ( ( linkMode == 0 ) ? 'none' : '' );
 			}
 		}
 	}
@@ -722,7 +722,7 @@ if ( typeof(lib4riSearchLinkUpdate) != 'function' ) {
 				let bbName = bbElemAry[b].id;
 				let argStr = '?linkset=' + lib4riSearchEncodeURI(bbElemAry[b].title) + '&find=' + escape(encodeURI(searchFind));
 				setTimeout(
-					lib4riJsonFetch( lib4riSearchScript+argStr, function(text){
+					lib4riJsonFetch( lib4riSearchScript+argStr, bbName, function(text){
 						let jsonData = JSON.parse(text);
 						let bbElem = document.getElementById(bbName);
 						if ( !( bbElem ) ) {

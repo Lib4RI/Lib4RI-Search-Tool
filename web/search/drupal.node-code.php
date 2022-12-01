@@ -69,7 +69,7 @@ $host = ''; // if request however use the absolute host link:
 		<!-- vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv TAB 1 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 		<div id="lib4ri-result-container-1" class="lib4ri-result-container">
-		    <div class="lib4ri-search-col lib4ri-search-col-1">
+			<div class="lib4ri-search-col lib4ri-search-col-1">
 
 				<div class="lib4ri-bentobox-column-header"><h3>Journal Articles etc.</h3></div>
 
@@ -85,9 +85,9 @@ $host = ''; // if request however use the absolute host link:
 					<label class="lib4ri-bentobox-label">Other Articles Sites</label>
 					<div id="lib4ri-bentobox-linkset-1-1-1" class="lib4ri-bentobox-linkset" _title="articles:*" title="articles:Google Scholar;articles:Dimensions;articles:swisscovery articles;articles:BASE"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
-		    </div>
+			</div>
 
-		    <div class="lib4ri-search-col lib4ri-search-col-2">
+			<div class="lib4ri-search-col lib4ri-search-col-2">
 				<div class="lib4ri-bentobox-column-header"><h3>Books etc.</h3></div>
 
 				<div class="lib4ri-bentobox-container">
@@ -107,8 +107,14 @@ $host = ''; // if request however use the absolute host link:
 					<label class="lib4ri-bentobox-label">Patents</label>
 					<div id="lib4ri-bentobox-linkset-1-2-3" class="lib4ri-bentobox-linkset" title="more:Patents:Derwent;more:Patents:Espacenet;more:Patents:Google Patents"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
+
+				<!-- work in progress, ETA Dec'22/Jan'23 --><!-- div class="lib4ri-bentobox-container">
+					<label class="lib4ri-bentobox-label">Wikipedia</label>
+					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-wikipedia"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+				</div -->
+
 				<div class="lib4ri-bentobox-container">
-					<label class="lib4ri-bentobox-label">Reference Works</label>
+					<label class="lib4ri-bentobox-label"><!-- Further -->Reference Works</label>
 					<div id="lib4ri-bentobox-linkset-1-2-4" class="lib4ri-bentobox-linkset" title="references:Wikipedia – EN;references:Wikipedia – DE;references:Wikipedia – FR;references:Wikipedia – IT;references:main:Britannica;;references:Science & Technology:ChemSpider;references:Science & Technology:Elsevier Reference;references:Science & Technology:Springer Materials;references:Science & Technology:Springer Reference;references:Science & Technology:Wiley Reference"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
@@ -120,9 +126,9 @@ $host = ''; // if request however use the absolute host link:
 					<div id="lib4ri-bentobox-linkset-1-2-6" class="lib4ri-bentobox-linkset" title="more:Maps:OpenStreetMap;more:Maps:Google Maps;more:Maps:map.search.ch;more:Maps:GeoNames"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 
-		    </div>
+			</div>
 
-		    <div class="lib4ri-search-col lib4ri-search-col-3">
+			<div class="lib4ri-search-col lib4ri-search-col-3">
 				<div class="lib4ri-bentobox-column-header"><h3>Institutional Repository</h3></div>
 
 				<div class="lib4ri-bentobox-container">
@@ -141,7 +147,7 @@ $host = ''; // if request however use the absolute host link:
 					<label class="lib4ri-bentobox-label">DORA WSL</label>
 					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-dora-wsl"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
-		    </div>
+			</div>
 
 		</div><!-- end of "lib4ri-result-container-1" -->
 
@@ -150,28 +156,29 @@ $host = ''; // if request however use the absolute host link:
 
 		<div id="lib4ri-result-container-2" class="lib4ri-result-container" style="display:none;">
 
-		    <div class="lib4ri-search-col lib4ri-search-col-1to2">
+			<div class="lib4ri-search-col lib4ri-search-col-1to2">
 				<div class="lib4ri-bentobox-column-header"><h3><!-- Journal List --></h3></div>
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label" id="lib4ri-bentobox-label-2-1-1" title="Journal List">Lib4RI&#39;s Journal List</label>
-					<div class="lib4ri-bentobox-control" id="lib4ri-bentobox-control-2-1-1"><!-- rather special/unique case, to be optimized!(?) --></div>
+					<div class="lib4ri-bentobox-control" id="lib4ri-bentobox-control-2-1-1">&nbsp;<!-- special case / keep &nbsp; / to be tuned --></div>
 					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-journal-dn_and_ci"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
-		    </div>
 
-		    <div class="lib4ri-search-col lib4ri-search-col-3">
+				<div class="lib4ri-bentobox-container">
+					<label class="lib4ri-bentobox-label">Journal not found? - Try this:</label>
+					<div id="lib4ri-bentobox-linkset-2-1-2" class="lib4ri-bentobox-linkset" title="journals:*" _title="journals:SHERPA/RoMEO;journals:DOAJ - Journals"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+				</div>
+			</div>
+
+			<div class="lib4ri-search-col lib4ri-search-col-3">
 				<div class="lib4ri-bentobox-column-header"><h3><!-- Journal Help --></h3></div>
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Browse Journals by Subject</label><!-- temporary inline CSS, since under construction -->
 					<div id="lib4ri-bentobox-linkset-2-3-1" class="lib4ri-bentobox-noapi" style="border: 1px solid #7a5; padding: .5ex 1ex .5ex 3ex;"><div style="height:85px; margin-left:-3px; background:url(https://svgsilh.com/png-512/150271-3f51b5.png) no-repeat; background-size:105px; background-position:left; vertical-align:top; padding:20px 0 0 115px;">Coming Soon!</div></div>
 				</div>
-				<div class="lib4ri-bentobox-container">
-					<label class="lib4ri-bentobox-label">Journal not found? - Try this:</label>
-					<div id="lib4ri-bentobox-linkset-2-3-2" class="lib4ri-bentobox-linkset" title="journals:*" _title="journals:SHERPA/RoMEO;journals:DOAJ - Journals"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
-				</div>
-		    </div>
+			</div>
 
 		</div><!-- end of "lib4ri-result-container-2" -->
 
@@ -181,7 +188,7 @@ $host = ''; // if request however use the absolute host link:
 
 		<div id="lib4ri-result-container-3" class="lib4ri-result-container">
 
-		    <!-- div class="lib4ri-search-col lib4ri-search-col-1">
+			<!-- div class="lib4ri-search-col lib4ri-search-col-1">
 				<div class="lib4ri-bentobox-column-header"><h3>References</h3></div>
 
 				<div class="lib4ri-bentobox-container">
@@ -192,9 +199,9 @@ $host = ''; // if request however use the absolute host link:
 					<label class="lib4ri-bentobox-label">Science & Technology</label>
 					<div id="lib4ri-bentobox-linkset-3-1-2" class="lib4ri-bentobox-linkset" title="references:Science & Technology:ChemSpider;references:Science & Technology:Elsevier Reference;references:Science & Technology:Springer Materials;references:Science & Technology:Springer Reference;references:Science & Technology:Wiley Reference"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
-		    </div -->
+			</div -->
 
-		    <div class="lib4ri-search-col lib4ri-search-col-1to2">
+			<div class="lib4ri-search-col lib4ri-search-col-1to2">
 				<div class="lib4ri-bentobox-column-header"><!-- h3>Col 1+2</h3 --></div>
 
 				<div class="lib4ri-bentobox-container">
@@ -202,18 +209,18 @@ $host = ''; // if request however use the absolute host link:
 					<div id="lib4ri-bentobox-linkset-3-1-1" class="lib4ri-bentobox-linkset" title="institutes:Lib4RI:Search Lib4RI website with Google"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 
-		    </div>
+			</div>
 
-		    <!-- div class="lib4ri-search-col lib4ri-search-col-2">
+			<!-- div class="lib4ri-search-col lib4ri-search-col-2">
 				<div class="lib4ri-bentobox-column-header"><h3>Other Resources</h3></div>
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Standards</label>
 					<div id="lib4ri-bentobox-linkset-3-2-1" class="lib4ri-bentobox-linkset" title="more:main:Lib4RI Standards Portal"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
-		    </div -->
+			</div -->
 
-		    <div class="lib4ri-search-col" id="lib4ri-search-col-3">
+			<div class="lib4ri-search-col" id="lib4ri-search-col-3">
 				<div class="lib4ri-bentobox-column-header"><!-- h3>Col 3</h3 --></div>
 
 				<div class="lib4ri-bentobox-container">
@@ -232,14 +239,13 @@ $host = ''; // if request however use the absolute host link:
 					<label class="lib4ri-bentobox-label">WSL</label>
 					<div id="lib4ri-bentobox-linkset-3-3-4" class="lib4ri-bentobox-linkset" title="institutes:WSL:People;institutes:WSL:Fulltext"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
-		    </div>
+			</div>
 
 		</div><!-- end of "lib4ri-result-container-3" -->
 
 
 	<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ END OF ALL TABS ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
 	</div><!-- end of "lib4ri-tab-container" -->
-
 
 </div><!-- end of div id="lib4ri-websearch-body" -->
 
