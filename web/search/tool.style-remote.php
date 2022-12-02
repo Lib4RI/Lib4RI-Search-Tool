@@ -29,7 +29,7 @@ if( true /* try to include remote CSS - really safe!? */ ) {
 	}
 	// check if we got e.g. tool.style-remote.php?css=https://example.com/style/test.css?t=22-Nov-11
 	if ( $cssGot = @strip_tags($_GET['css']) ) {
-
+	/*
 		// compare user's IP (CIDR/24) with IPs sendt by Victor / Dream Production via e-mail: 2022-Nov-22, 09:34
 		if ( !( @include_once('../search.protect.inc') ) ) {
 			die('ERROR: IP tools could not be loaded!');
@@ -43,7 +43,7 @@ if( true /* try to include remote CSS - really safe!? */ ) {
 		}
 		// To do:
 		// Ask Lothar to white-list Dream Production, or find a better way via search.protect.inc
-
+	*/
 		while( strpos($cssGot,'%') !== false ) {
 			$cssTmp = rawurldecode($cssGot);
 			if ( $cssTmp == $cssGot ) {	break; }

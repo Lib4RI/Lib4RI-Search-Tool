@@ -151,7 +151,7 @@ function websearch_cidr_range($cidr, $tuneFunc = 'long2ip') {
 	Will return TRUE if idenfied as as bot.
 	Needs global $_websearch_bot_blacklist to operate!
 */
-function websearch_by_bot($user_agent = '', $demand_language = TRUE /* safer to insist on this, also citeProc is language-related */ ) {
+function websearch_by_bot($user_agent = '', $demand_language = false /* safer? to insist on this, at least citeProc is language-related */ ) {
 	/*
 	if ( @empty($_SERVER['HTTP_ROOT']) ) {
 		return FALSE;		// we must be on a console!(?)
