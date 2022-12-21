@@ -41,7 +41,7 @@ class apiQueryUtils
 	public $searchTermType;	// like 'doi', 'issn', 'isbn'
 	public $searchLimit;	// numerical
 	public $searchOffset;	// numerical
-	public $citeStyle = 'national-institute-of-health-research';
+	public $citeStyle;
 	public $formName;
 	public $formTarget;
 	// public $timeNeeded;	// to store how we stay in touch with the remote server - DISABLED with current implementation this rather the time to connect only.
@@ -61,6 +61,7 @@ class apiQueryUtils
 		if ( !is_array($this->apiHeaderData) ) {
 			$this->apiHeaderData = ( empty($this->apiHeaderData) ? array() : array($this->apiHeaderData) );
 		}
+		$this->citeStyle = W_S_CITEPROC_STYLE;
 	}
 
 	public function cleanTerm($searchTerm = '', $tuning = ['urldecode','strip_tags'] )

@@ -17,7 +17,12 @@ $configAry = array(
 
 	'API_LIB4RI_URL'   => 'https://search.lib4ri.ch/api/',
 	'API_LIB4RI_DIR'   => '/var/www/html/api/',
-	
+
+	/* CiteProc: Define the transformation CSL file (without *.csl): */
+	'CITEPROC_STYLE'   => 'national-institute-of-health-research',
+	/* CiteProc's loadStyleSheet() wants *.csl file in self::vendorPath()."/citation-style-language/styles-distribution/" */
+	/* Generally any upload feature would be nice to upload our own CSL file... */
+
 );
 
 
