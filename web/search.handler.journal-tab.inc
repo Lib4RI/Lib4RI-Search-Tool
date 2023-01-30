@@ -52,7 +52,7 @@
 			$jPubler = @trim( $jAry['publisher'] ); 
 			$repAry = array(
 				'ident'    => $jIdx,
-				'available' => 'Availability',
+				'available' => '<ul class="lib4ri-ul-flat"><li class="lib4ri-li-wide">swisscovery: Availability</li><ul>',
 				'created' => '<span style="line-height:2.5ex;">Publication Period: ' . /* $jAry['issued']['date-parts'][0][0] */ @trim($dateAry[0]) . ( @preg_match('/^\d{4}$/',$dateAry[0]) ? '-' : '' ) . '</span>',
 				'relation' => implode('<br>',$relAry),
 			/*	'publisher' => 'Publisher: <ul class="lib4ri-ul-flat"><li class="lib4ri-li-wide"><span title="' . $jPubler . ( empty($jAry['place']) ? '' : ' ('.$jAry['place'].')' ) . '">' . $jPubler . '</span></li></ul>',	*/

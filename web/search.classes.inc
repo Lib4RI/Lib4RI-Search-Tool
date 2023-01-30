@@ -1,6 +1,7 @@
 <?php
 
 @include_once('./search.config.inc');
+@include_once('./search.traits.inc');
 
 
 $dirInc = './';
@@ -25,6 +26,8 @@ if ( @include_once($dirInc.'citeproc.styles.tools.inc') /* for websearch_citepro
 
 class apiQueryUtils
 {
+	use apiQueryTraits;
+
 	public $apiName;		// e.g. "dora", required (this is basically the work-name for us)
 	public $apiHost;		// optional, apiName is taken if empty, could e.g. be 'libri' (for API name "dora")
 	public $apiLabel;		// e.g. "DORA" or "DORA/Eawag", required
@@ -41,7 +44,7 @@ class apiQueryUtils
 	public $searchTermType;	// like 'doi', 'issn', 'isbn'
 	public $searchLimit;	// numerical
 	public $searchOffset;	// numerical
-	public $citeStyle;
+	public $citeStyle = '' /* 'national-institute-of-health-research' */ ;
 	public $formName;
 	public $formTarget;
 	// public $timeNeeded;	// to store how we stay in touch with the remote server - DISABLED with current implementation this rather the time to connect only.
@@ -104,7 +107,7 @@ class apiQueryUtils
 		preg_match_all( $regExAry[max(min($checkLevel,sizeof($regExAry)-1),0)], $try.' ', $ary );
 
 		if ( sizeof($ary[0]) ) {
-			$ary[0] = str_ireplace( ['!?9?!','!?8?!','!?7?!'], ['%252f','%2f','/'], $ary[0] );	// better(?) revert custom slash-encoding
+			$ary[0] = str_ireplace( ['!?9?!','!?8?!','!?7?!'], ['%252f','%2f','/'], $ary[0] );	// revert custom slash-encoding
 			return array_map( function($t) { return rtrim($t); }, array_values($ary[0]) ); // we have at least 1 DOI !
 		}
 		return false;
@@ -128,7 +131,7 @@ class apiQueryUtils
 		return FALSE;
 	}
 
-	public function cleanIssn($issn = '',$tuneFunc = 'strtoupper')
+	public function cleanIssn($issn = '',$tuneFunc = 'strtoupper')		//  to clean/normalize a single ISSN
 	{
 		$issn = str_ireplace( array('&minus;','&#8222;','&mdash;','&#8212;','&ndash;','&#8211;'), array('-','-','-','-','-','-'), strip_tags($issn) );
 		if ( $issn = trim(urldecode($issn)) ) {
@@ -148,12 +151,10 @@ class apiQueryUtils
 				$searchTerm = @trim($_GET['find']);		// caution, may contain unwanted tags!
 			}
 		}
-		if ( !websearch_ip_from('lib4ri') ) {
-			// for minimum safety, not accepting tagged input from outside Lib4RI members - to be tuned
-			foreach( ['2525253c','%25253c','%253c','%3c','<'] as $skip ) {
-				$pos = stripos($searchTerm,$skip);
-				if ( $pos === false ) { continue; }
-				$searchTerm = substr($searchTerm,0,$pos);
+		if ( !intval($searchTerm) ) {	// decode if it is not starting with a number (hence no DOI, no ISSN/ISBN)
+			while( $tmp = urldecode(rawurldecode($searchTerm)) ) {
+				if ( $tmp == $searchTerm ) { break; }
+				$searchTerm = $tmp;
 			}
 		}
 		$ary = $this->getDoi($searchTerm,true);	// try!
@@ -327,6 +328,7 @@ class apiQueryUtils
 			$cUrl = curl_init();
 			curl_setopt($cUrl, CURLOPT_URL, $apiUrl );
 			curl_setopt($cUrl, CURLOPT_HTTPHEADER, $headerAry['http']['header'] );
+			curl_setopt($cUrl, CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt($cUrl, CURLOPT_RETURNTRANSFER, 1 );
 			curl_setopt($cUrl, CURLOPT_TIMEOUT, $timeout );
 			curl_setopt($cUrl, CURLOPT_CONNECTTIMEOUT, ( ( $timeout + 1 ) >> 1 ) );
@@ -1394,7 +1396,6 @@ class apiQueryWikipedia extends apiQueryUtils
 		
 }
 
-
 class apiQueryWikihit extends apiQueryUtils
 {
 	/* Main issue:
@@ -1416,7 +1417,7 @@ class apiQueryWikihit extends apiQueryUtils
 		$this->apiHost = 'wikimedia';
 		$this->apiLabel = 'Wikipedia';		//  will serve a ID for this type of API request!
 		$this->apiScope = '';
-		$this->apiUrlList = 'https://en.wikipedia.org/w/api.php?&action=opensearch&redirects=resolve&search=';	
+		$this->apiUrlList = 'https://en.wikipedia.org/w/api.php?&action=opensearch&search=';	
 		parent::__construct($this->apiLabel);
 	}
 
@@ -1425,16 +1426,17 @@ class apiQueryWikihit extends apiQueryUtils
 		if ( empty($searchTerm) ) {
 			$this->setupParam();		// refresh!
 			$searchTerm = ( empty($this->searchTermOrig) ? 'rainbow' : $this->searchTermOrig );
+		} else {
+			$searchTerm = urldecode(rawurldecode($searchTerm)); // try to get rid if any encodings!
 		}
-		$searchTerm = urldecode(rawurldecode($searchTerm)); // get rid if any encodings!
 
 		if ( @!empty($this->wikiList[0]) /* always underscore for space */ && strtolower(strtr($this->wikiList[0],'_',' ')) == strtolower($searchTerm) ) {
 			return $this->wikiList;		// deliver the cached one!
 		}
 
-		$this->wikiList = json_decode( $this->makeQuery( $this->apiUrlList . $searchTerm ) );       // cache it
+		$this->wikiList = json_decode( $this->makeQuery( $this->apiUrlList . rawurlencode(ucwords($searchTerm)) ) ); // better hits with uc-words!(?)
 		/* What we get/return is an Array (
-				[0] => Functional_Ecology
+				[0] => Functional Ecology
 				[1] => Array (
 						[0] => Functional ecology
 						[1] => Functional Ecology (journal)
@@ -1449,13 +1451,17 @@ class apiQueryWikihit extends apiQueryUtils
 					)
 				)
 		*/
+		if ( ( $tmp = @strtr($this->wikiList[1][0],' ','_') ) && ( $pos = strpos($tmp,'_-_') ) ) {
+			$searchTerm = substr($tmp,0,$pos+1) . '(' . substr($tmp,$pos+3) . ')';
+			$this->wikiList = json_decode( $this->makeQuery( $this->apiUrlList . rawurlencode(ucwords($searchTerm)) ) ); // better hits with uc-words!(?)
+		}
 		return $this->wikiList;
 	}
 
 	public function apiUrl($searchTerm = '', $searchOffset = -1) // for example: https://en.wikipedia.org/api/rest_v1/page/summary/Water_Research
 	{
 		$jsonAry = $this->getList($searchTerm);
-		return ( 'https://en.wikipedia.org/api/rest_v1/page/summary/' . @strtr($jsonAry[1][0],' ','_') );
+		return ( 'https://en.wikipedia.org/api/rest_v1/page/summary/' . @rawurlencode(strtr(ucwords($jsonAry[1][0]),' ','_')) );
 	}
 
 	public function webUrl($searchTerm = '', $searchOffset = -1) // for example: https://en.wikipedia.org/wiki/Water_Research
@@ -1464,21 +1470,52 @@ class apiQueryWikihit extends apiQueryUtils
 		return @strval($jsonAry[3][0]);
 	}
 
+	public function getNumFound()		// of the realted results, only call after queryNow() !
+	{
+		return $this->numFound;
+	}
+
 	public function queryNow($searchTerm = '')
 	{
+		if ( empty($searchTerm) ) { $searchTerm = $this->getSearchTerm($searchTerm); }
 		$apiUrl = $this->apiUrl( empty($searchTerm) ? 'dreamland' : $searchTerm );
-		$jsonData = $this->makeQuery( $apiUrl );
 		$jsonAry = $this->getList($searchTerm);
+		$jsonData = $this->makeQuery( $apiUrl );
 		$this->numFound = ( @empty($jsonAry[1][0]) ? 0 : 1 );
 		return $jsonData;
 	}
 
-	public function getNumFound()		// only call after queryNow() !
+	public function makeHtml($searchTerm = '', $langAry = ['en','de','fr','it'] )
 	{
-		return $this->numFound;
-	}
-}
+		$tmpAry = json_decode($this->queryNow($searchTerm),true);
+		$html = '';
+		if ( @!empty($tmpAry['extract']) ) {
 
+			$html = '<img src="' . $tmpAry['thumbnail']['source'] . '" height="' . /* min($tmpAry['thumbnail']['height'],200) . */ '180px" />';
+			$html = '<a href="' . $tmpAry['content_urls']['desktop']['page'] . '" target="_blank" style="float:right; margin:0 0 3px 1ex;">' . $html . '</a> ';
+
+			$ext = implode(' ',array_slice(explode(' ',$tmpAry['extract_html']),0,75));
+			if ( $pos = strpos($ext,'</b>') ) {
+				$ext = substr($ext,0,$pos+4) . '</a>' . substr($ext,$pos+4);
+				if ( ( $pos = strpos($ext,'<b') ) !== false ) {
+					$ext = substr($ext,0,$pos) . '<a href="' . $tmpAry['content_urls']['desktop']['page'] . '" target="_blank">' . substr($ext,$pos);
+				}
+			}
+			if ( strlen($tmpAry['extract_html']) > strlen($ext) ) { $ext .= '...'; }
+
+			$html = ( ( stripos($ext,'<p>') === 0 ) ? '<p>'.$html.substr($ext,3) : $html.$ext ) . '<br>';
+
+			array_shift($langAry);	// remove 'en'
+		}
+		foreach( $langAry as $idx => $lang ) {
+			$html .= ( empty($idx) ? 'Wikipedia &nbsp;' : ' | ' );
+			$html .= '<a href="https://www.wikipedia.org/search-redirect.php?search=' . strtr(ucWords($searchTerm),' ','_') . '&language=' . $lang . '&go=++%E2%86%92++&go=Go">';
+			$html .= strtoupper($lang) . '</a>';
+		}
+		return str_replace('<a ','<a target="_blank" ',$html);	// enforce new page everywhere (current standard with us)
+	}
+	
+}
 
 /*
 // for interal usage (but has some API/web features too):
@@ -1491,3 +1528,4 @@ if ( !empty($reqTerm) && is_array($exData) ) {
 }
 echo "Exchange Rate " . $reqTerm . ": " . print_r( $exData, 1 );
 */
+

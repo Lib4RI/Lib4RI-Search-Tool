@@ -259,7 +259,7 @@ if ( typeof(lib4riSearchPerform) != 'function' ) {
 						let bbElem = document.getElementById(bbName);
 						if ( bbElem ) {
 							bbElem.innerHTML = lib4riSearchDelDivClass(bbElem.innerHTML);	// remove animations
-							let htmlGot = ( ( htmlData[bbName] == undefined ) ? '' : decodeURIComponent(htmlData[bbName]) );
+							let htmlGot = ( ( htmlData[bbName] == undefined ) ? '' : ( htmlData[bbName].substring(0,1) == '%' ? decodeURIComponent(htmlData[bbName]) : htmlData[bbName] ) );
 							if ( searchOffset >= 0 ) {
 								// no prio-handling, just/simply add new HTML content onto the existing one
 								bbElem.innerHTML += htmlGot;
@@ -338,11 +338,11 @@ if ( typeof(lib4riSearchPerform) != 'function' ) {
 										let bbElem = document.getElementById(idToggle);
 										if ( bbElem ) { bbElem.click(); }
 									}, (300 * (b + Math.max(searchOffset,0) ) + 600) );
-									if ( bbElem && bbElem.title.indexOf('Journal') >= 0 ) {
+									if ( bbElem && bbElem.dataset.api.indexOf('Journal') >= 0 ) {
 										setTimeout( function() { lib4riSearchJournalToggle(-1); }, 1500 );
 									}
 								} else if ( bbElemAry.length > 0 ) { // with more than 1 result show the 'open all' link:
-									if ( bbElem && bbElem.title.indexOf('Journal') >= 0 ) {
+									if ( bbElem && bbElem.dataset.api.indexOf('Journal') >= 0 ) {
 										setTimeout( function() { lib4riSearchJournalToggle(2); }, 75 * bbElemAry.length + 250 );
 									}
 								}
@@ -431,8 +431,8 @@ if ( typeof(lib4riSearchBentoboxTuner) != 'function' ) {
 				if ( bbAry[3] != undefined && bbAry[3] != '' ) {
 					argStr += '&scope=' + bbAry[3];
 				}
-				if ( bbElemAry[b].title != undefined && bbElemAry[b].title != '' ) {
-					argStr += '&' + bbElemAry[b].title.trim();		// config tweak!?
+				if ( bbElemAry[b].dataset.api != undefined && bbElemAry[b].dataset.api != '' ) {
+					argStr += '&' + bbElemAry[b].dataset.api.trim();		// config tweak!?
 				}
 				if ( searchOffset >= 0 || searchLimit >= 0 ) {
 					if ( searchOffset >= 0 ) {
@@ -567,7 +567,7 @@ if ( typeof(lib4riSearchJournalToggle) != 'function' ) {		// Needs to revised!(?
 	function lib4riSearchJournalToggle(linkMode = 0) {
 		let bbElem = document.getElementById( lib4riSearchJournalLabelId );
 		// Only show the toggle link if there will be more than 1 result (since with we auto-unfold a sole one):
-		if ( bbElem && bbElem.title.indexOf('Journal List') >= 0 && document.getElementsByClassName('lib4ri-journal-area').length > 0 ) {
+		if ( bbElem && bbElem.dataset.api.indexOf('Journal List') >= 0 && document.getElementsByClassName('lib4ri-journal-area').length > 0 ) {
 			if ( bbElem = document.getElementById( lib4riSearchJournalLabelId.replace('-label-','-control-') ) ) {
 				if ( linkMode >= 1 ) {
 					bbElem.innerHTML = '<a href="jav'+'asc'+'ript:" onclick="jav'+'asc'+'ript:lib4riJournalAreaShowAll(' + ( linkMode > 1 ? 350 : 175 ) + ')" class="lib4ri-bentobox-area-label-toggle-link">open all</a>';
@@ -720,7 +720,7 @@ if ( typeof(lib4riSearchLinkUpdate) != 'function' ) {
 			}
 			if ( idTabNow == lib4riSearchTabHistory[0] ) {
 				let bbName = bbElemAry[b].id;
-				let argStr = '?linkset=' + lib4riSearchEncodeURI(bbElemAry[b].title) + '&find=' + escape(encodeURI(searchFind));
+				let argStr = '?linkset=' + lib4riSearchEncodeURI(bbElemAry[b].dataset.api) + '&find=' + escape(encodeURI(searchFind));
 				setTimeout(
 					lib4riJsonFetch( lib4riSearchScript+argStr, bbName, function(text){
 						let jsonData = JSON.parse(text);

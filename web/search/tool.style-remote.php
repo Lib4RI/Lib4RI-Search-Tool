@@ -64,7 +64,7 @@ echo '<link rel="stylesheet" type="text/css" href="' . $cssSrc. '">' . "\r\n";
 
 // load JavaScript by default:
 if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
-	echo "\r\n" . '<script type="text/javascript" src="' . $host . '/web/js/lib4ri-bentobox.js?t=' . ( empty($got) ? time() : $got ) . '"></script>' . "\r\n";
+	echo "\r\n" . '<script type="text/javascript" src="' . $host . '/web/js/lib4ri-websearch.js?t=' . ( empty($got) ? time() : $got ) . '"></script>' . "\r\n";
 }
 
 ?>
@@ -123,15 +123,15 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Scopus</label>
-					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-scopus"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-scopus"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Web of Science</label>
-					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-wos"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-wos"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Other Articles Sites</label>
-					<div id="lib4ri-bentobox-linkset-1-1-1" class="lib4ri-bentobox-linkset" _title="articles:*" title="articles:Google Scholar;articles:Dimensions;articles:swisscovery articles;articles:BASE"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-1-1-1" class="lib4ri-bentobox-linkset" _data-api="articles:*" data-api="articles:Google Scholar;articles:Dimensions;articles:swisscovery articles;articles:BASE"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 			</div>
 
@@ -140,36 +140,36 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">swisscovery Lib4RI</label>
-					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-book-myinstitution"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-book-myinstitution"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Other Books Sites</label>
-					<div id="lib4ri-bentobox-linkset-1-2-1" class="lib4ri-bentobox-linkset" title="books:WorldCat;books:KVK;books:Book Trade;books:Google Books;books:Open Library;books:DOAB"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-1-2-1" class="lib4ri-bentobox-linkset" data-api="books:WorldCat;books:KVK;books:Book Trade;books:Google Books;books:Open Library;books:DOAB"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 			
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Standards</label>
-					<div id="lib4ri-bentobox-linkset-1-2-2" class="lib4ri-bentobox-linkset" title="more:main:Lib4RI Standards Portal"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-1-2-2" class="lib4ri-bentobox-linkset" data-api="more:main:Lib4RI Standards Portal"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Patents</label>
-					<div id="lib4ri-bentobox-linkset-1-2-3" class="lib4ri-bentobox-linkset" title="more:Patents:Derwent;more:Patents:Espacenet;more:Patents:Google Patents"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-1-2-3" class="lib4ri-bentobox-linkset" data-api="more:Patents:Derwent;more:Patents:Espacenet;more:Patents:Google Patents"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<!-- work in progress, ETA Dec'22/Jan'23 --><!-- div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Wikipedia</label>
-					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-wikipedia"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-wikipedia"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div -->
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label"><!-- Further -->Reference Works</label>
-					<div id="lib4ri-bentobox-linkset-1-2-4" class="lib4ri-bentobox-linkset" title="references:Wikipedia – EN;references:Wikipedia – DE;references:Wikipedia – FR;references:Wikipedia – IT;references:main:Britannica;;references:Science & Technology:ChemSpider;references:Science & Technology:Elsevier Reference;references:Science & Technology:Springer Materials;references:Science & Technology:Springer Reference;references:Science & Technology:Wiley Reference"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-1-2-4" class="lib4ri-bentobox-linkset" data-api="references:Wikipedia – EN;references:Wikipedia – DE;references:Wikipedia – FR;references:Wikipedia – IT;references:main:Britannica;;references:Science & Technology:ChemSpider;references:Science & Technology:Elsevier Reference;references:Science & Technology:Springer Materials;references:Science & Technology:Springer Reference;references:Science & Technology:Wiley Reference"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Dissertations</label>
-					<div id="lib4ri-bentobox-linkset-1-2-5" class="lib4ri-bentobox-linkset" title="more:Dissertations:*"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-1-2-5" class="lib4ri-bentobox-linkset" data-api="more:Dissertations:*"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Maps</label>
-					<div id="lib4ri-bentobox-linkset-1-2-6" class="lib4ri-bentobox-linkset" title="more:Maps:OpenStreetMap;more:Maps:Google Maps;more:Maps:map.search.ch;more:Maps:GeoNames"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-1-2-6" class="lib4ri-bentobox-linkset" data-api="more:Maps:OpenStreetMap;more:Maps:Google Maps;more:Maps:map.search.ch;more:Maps:GeoNames"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 
 			</div>
@@ -179,19 +179,19 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">DORA Eawag</label>
-					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-dora-eawag"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-dora-eawag"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">DORA Empa</label>
-					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-dora-empa"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-dora-empa"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">DORA PSI</label>
-					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-dora-psi"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-dora-psi"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">DORA WSL</label>
-					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-dora-wsl"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-dora-wsl"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 			</div>
 
@@ -206,14 +206,14 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 				<div class="lib4ri-bentobox-column-header"><h3><!-- Journal List --></h3></div>
 
 				<div class="lib4ri-bentobox-container">
-					<label class="lib4ri-bentobox-label" id="lib4ri-bentobox-label-2-1-1" title="Journal List">Lib4RI&#39;s Journal List</label>
+					<label class="lib4ri-bentobox-label" id="lib4ri-bentobox-label-2-1-1" data-api="Journal List">Lib4RI&#39;s Journal List</label>
 					<div class="lib4ri-bentobox-control" id="lib4ri-bentobox-control-2-1-1">&nbsp;<!-- special case / keep &nbsp; / to be tuned --></div>
-					<div class="lib4ri-bentobox-result" title="" id="lib4ri-bentobox-journal-dn_and_ci"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-journal-dn_and_ci"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Journal not found? - Try this:</label>
-					<div id="lib4ri-bentobox-linkset-2-1-2" class="lib4ri-bentobox-linkset" title="journals:*" _title="journals:SHERPA/RoMEO;journals:DOAJ - Journals"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-2-1-2" class="lib4ri-bentobox-linkset" data-api="journals:*" _data-api="journals:SHERPA/RoMEO;journals:DOAJ - Journals"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 			</div>
 
@@ -239,11 +239,11 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">General</label>
-					<div id="lib4ri-bentobox-linkset-3-1-1" class="lib4ri-bentobox-linkset" title="references:Wikipedia – EN;references:Wikipedia – DE;references:Wikipedia – FR;references:Wikipedia – IT;references:main:Britannica"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-3-1-1" class="lib4ri-bentobox-linkset" data-api="references:Wikipedia – EN;references:Wikipedia – DE;references:Wikipedia – FR;references:Wikipedia – IT;references:main:Britannica"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Science & Technology</label>
-					<div id="lib4ri-bentobox-linkset-3-1-2" class="lib4ri-bentobox-linkset" title="references:Science & Technology:ChemSpider;references:Science & Technology:Elsevier Reference;references:Science & Technology:Springer Materials;references:Science & Technology:Springer Reference;references:Science & Technology:Wiley Reference"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-3-1-2" class="lib4ri-bentobox-linkset" data-api="references:Science & Technology:ChemSpider;references:Science & Technology:Elsevier Reference;references:Science & Technology:Springer Materials;references:Science & Technology:Springer Reference;references:Science & Technology:Wiley Reference"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 			</div -->
 
@@ -252,7 +252,7 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Lib4RI</label>
-					<div id="lib4ri-bentobox-linkset-3-1-1" class="lib4ri-bentobox-linkset" title="institutes:Lib4RI:Search Lib4RI website with Google"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-3-1-1" class="lib4ri-bentobox-linkset" data-api="institutes:Lib4RI:Search Lib4RI website with Google"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 
 			</div>
@@ -262,7 +262,7 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Standards</label>
-					<div id="lib4ri-bentobox-linkset-3-2-1" class="lib4ri-bentobox-linkset" title="more:main:Lib4RI Standards Portal"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-3-2-1" class="lib4ri-bentobox-linkset" data-api="more:main:Lib4RI Standards Portal"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 			</div -->
 
@@ -271,19 +271,19 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Eawag</label>
-					<div id="lib4ri-bentobox-linkset-3-3-1" class="lib4ri-bentobox-linkset" title="institutes:Eawag:People;institutes:Eawag:Fulltext"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-3-3-1" class="lib4ri-bentobox-linkset" data-api="institutes:Eawag:People;institutes:Eawag:Fulltext"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Empa</label>
-					<div id="lib4ri-bentobox-linkset-3-3-2" class="lib4ri-bentobox-linkset" title="institutes:Empa:People;institutes:Empa:Fulltext"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-3-3-2" class="lib4ri-bentobox-linkset" data-api="institutes:Empa:People;institutes:Empa:Fulltext"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">PSI</label>
-					<div id="lib4ri-bentobox-linkset-3-3-3" class="lib4ri-bentobox-linkset" title="institutes:PSI:People;institutes:PSI:Fulltext"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-3-3-3" class="lib4ri-bentobox-linkset" data-api="institutes:PSI:People;institutes:PSI:Fulltext"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">WSL</label>
-					<div id="lib4ri-bentobox-linkset-3-3-4" class="lib4ri-bentobox-linkset" title="institutes:WSL:People;institutes:WSL:Fulltext"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<div id="lib4ri-bentobox-linkset-3-3-4" class="lib4ri-bentobox-linkset" data-api="institutes:WSL:People;institutes:WSL:Fulltext"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 			</div>
 

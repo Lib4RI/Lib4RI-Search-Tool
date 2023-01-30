@@ -101,7 +101,7 @@ class searchHandler
 			$linkAry = array_map('trim',explode(';',$linkSet));
 			foreach($linkAry as $linkPath ) {
 				if ( empty($linkPath) ) {
-					$retAry['set'][] .= '&nbsp;';
+					$retAry['set'][] = '&nbsp;';
 					$retAry['html'] .= '<div class="lib4ri-bentobox-linkset-link">&nbsp;</div>';
 					continue;
 				}
@@ -147,16 +147,15 @@ class searchHandler
 			_lib4ri_exitByError( 'ERROR LinkSet: Something went wrong for link-set: ' . $linkSet );
 		}
 		/*
-		elseif ( stripos($linkSet,'Google') && stripos($linkSet,'Lib4RI') ) { // temp. exception: 'unter construction' for internal/lib4ri.ch search:
-		
+		if ( stripos($linkSet,'Google') && stripos($linkSet,'Lib4RI') ) { // temp. exception: 'unter construction' for internal/lib4ri.ch search:
 			$htmlAry = array(
 				'<table style="border:0; margin:2ex 0 2ex 0; padding:0;"><tbody><tr><td style="margin-right:2ex;">',
 				'<img src="https://svgsilh.com/png-512/150271-3f51b5.png" width="256" height="238" style="width:256px; height:238px;">',
 				'<!-- image source: https://wordpress.org/openverse/image/b18cfb7f-58ee-4108-b935-7c3fb9d79ce5/ -->',
 				'</td><td>&nbsp;</td><td style="vertical-align:top;">',
 				'<br>With the relaunch of our website, you will see a a results list here. <br>Until then, please use this customized ',
-				str_replace( substr(strrchr($linkSet,':'),1), 'Google link to search lib4ri.ch', $retAry['set'][0] ),
-				'.</td></tr></tbody></table>',
+				str_replace( substr(strrchr($linkSet,':'),1), 'Google link', $retAry['set'][0] ),
+				' to search lib4ri.ch.</td></tr></tbody></table>',
 			);
 			$retAry = array( 'set' => array( implode('',$htmlAry) ) );
 			$retAry['html'] = '<div class="lib4ri-bentobox-linkset-link">' . $retAry['set'][0] . '</div>';

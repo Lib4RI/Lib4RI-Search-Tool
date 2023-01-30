@@ -6,7 +6,7 @@
 	Note the the apostrophe will be escaped with a backslash.
 */
 function websearch_citeproc_style_list( $varName = 'stylesOnDisc', 
-	$cacheFile = '/tmp/citeproc.styles.list-local.inc', 
+	$cacheFile = './citeproc.styles.list-local.inc', 
 	$cslDir = './citeproc/vendor/citation-style-language/styles-distribution' ) {
 
 	if ( empty($varName) || empty($cacheFile) || @filesize($cacheFile) < 50 ) {
@@ -53,4 +53,5 @@ $cslAry = array(
 	'springer-vancouver-author-date',
 	'springer-vancouver-brackets',
 );
+
 

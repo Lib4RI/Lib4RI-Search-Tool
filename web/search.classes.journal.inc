@@ -537,14 +537,14 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 		/*	
 				$val = @intval($chfAry[1]);
 				if ( ( $val && $val < $limitAry[1] ) || ( $chfAry[0] < $limitAry[1] ) ) {
-					$tmp = '<a href="https://www.lib4ri.ch/services/open-access/open-access-fund.html" target="_blank">' . 'check Lib4RI Fund' . '</a>';
+					$tmp = '<a href="https://www.lib4ri.ch/services/open-access/open-access-fund.html" target="_blank">' . 'Check Lib4RI Fund' . '</a>';
 					if ( !empty($val) || $chfAry[0] > $limitAry[0] ) {
 						$tmp .= ' (if APC &lt; CHF 2500)';
 					}
 					$detAry[] = $tmp;
 				}
 		*/
-				$tmp = '<a href="https://www.lib4ri.ch/services/open-access/open-access-fund.html" target="_blank">' . 'check Lib4RI Fund' . '</a>';
+				$tmp = '<a href="https://www.lib4ri.ch/services/open-access/open-access-fund.html" target="_blank">' . 'Check Lib4RI Fund' . '</a>';
 				$detAry[] = $tmp . ' (if APC &lt; CHF 2500)';
 			}
 
@@ -1056,7 +1056,7 @@ class apiQueryJournalDetail extends apiQueryUtilsIssn
 			//	if ( !empty($linkAry['own']) || !empty($linkAry['ext']) ) {
 			//		$markup = '<a href="' . ( !empty($linkAry['own']) ? $linkAry['own'] : $linkAry['ext'] ) . '" target="_blank">' . $markup . '</a>';
 			//	}
-				$markup = '<a href="' . $linkAry['fix'] . '" id="' . str_replace('@','toplink',$this->htmlTarget) . '" _tba="' . $linkAry['own'] . '" target="_blank">' . $markup . '</a>';
+				$markup = '<ul class="lib4ri-ul-flat"><li class="lib4ri-li-wide">swisscovery: <a href="' . $linkAry['fix'] . '" id="' . str_replace('@','toplink',$this->htmlTarget) . '" _tba="' . $linkAry['own'] . '" target="_blank">' . $markup . '</a></li></ul>';
 			}
 
 			if ( !empty($markup) ) {

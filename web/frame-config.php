@@ -132,7 +132,7 @@ $arrEnginges['articles']['main'] = array(
       'enabled'               => true,
       'prio'                  => 1,
     ),
-	
+
   );
 
 $arrEnginges['articles']['Technology'] = array(
@@ -1002,3 +1002,4 @@ $arrEnginges['more']['Patents'] = array(
 //      'prio'                  => 1,
 //    )
 //);
+

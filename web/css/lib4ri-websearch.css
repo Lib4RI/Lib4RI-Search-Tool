@@ -256,11 +256,6 @@ div {
 	line-height: 4ex; 
 	padding: 0 0 0.5ex 3.25ex;
 }
-.lib4ri-bentobox-label {
-	font-weight: 700;
-	line-height: 4ex; 
-	padding: 0 0 0.5ex 3.25ex;
-}
 .lib4ri-bentobox-control {
 	float: right;
 	padding: 1ex 1ex 0 0;
@@ -274,6 +269,12 @@ div {
 }
 
 /* test: new variant where we have the label area/'row' (on top of the bentobox) split in two parts */
+.lib4ri-bentobox-area-label-toggle-link {
+	font-style: italic; 
+	font-weight: 400;
+}
+
+/* new variant where we have the label area/'row' (on top of the bentobox) split in two parts */
 .lib4ri-bentobox-area-label-toggle-link {
 	font-style: italic; 
 	font-weight: 400;
@@ -543,3 +544,4 @@ div {
 		width: 80%; 
 	}
 }
+

@@ -15,6 +15,8 @@
 set_time_limit( 60 );	// bascially for SLSP/swisscovery (only)
 
 @include_once('./search.config.inc');
+@include_once('./search.traits.inc');
+
 
 $_dirAry = array( 
 	'local' => '/var/www/html/web/',
@@ -69,6 +71,8 @@ include_once($_dirAry['local'].'search.handler.classes.inc');	// will need globa
 include_once($_dirAry['local'].'search.classes.journal.inc');
 
 
+
+// //////////// vvvvv //// PROCESSING FUN STARTS HERE: //// vvvvv /////////////
 
 $getJsonAPI = null;
 $timeTest = microtime(true);
@@ -179,6 +183,12 @@ switch ( $apiName ) {
 	case 'dora':
 		$getJsonAPI = new apiQueryDORA( $scopeTmp );
 		break;
+	case 'wikipedia':
+		$getJsonAPI = new apiQueryWikihit();
+		break;
+	case 'wikihit':
+		$getJsonAPI = new apiQueryWikihit();
+		break;
 	default: /* try to find the class/object automatically depending on the API's name: */
 		$apiObjName = 'apiQuery' . ucfirst(trim(strip_tags($_GET['api'])));
 		if ( @!class_exists($apiObjName,false) ) {
@@ -196,6 +206,7 @@ switch ( $apiName ) {
 		}
 }
 
+// die( "Obj; " . $getJsonAPI->apiUrl() );
 
 if ( !( $searchLanguage = @trim(strip_tags($_GET['lang'])) ) ) { // for CiteProc, case sensitive!
 	$searchLanguage = 'en-US';
@@ -206,6 +217,7 @@ $getJsonAPI->apiLanguage = $searchLanguage;
 $apiName = $getJsonAPI->apiName;
 $apiHost = ( @empty($getJsonAPI->apiHost) ? $apiName : strtolower($getJsonAPI->apiHost) );
 $urlRemoteSearch = $getJsonAPI->webUrl($getJsonAPI->searchTermOrig);
+
 
 // API link for tests: $urlRemoteSearch = $getJsonAPI->apiUrl($getJsonAPI->searchTermOrig, ( $getJsonAPI->searchLimit + $getJsonAPI->searchOffset ) );
 // Test output:
@@ -267,7 +279,7 @@ if ( @intval($_GET['dev-test']) == 6 && websearch_ip_from('dev') ) { echo "JSON 
 
 
 $numFound = 0;
-if ( substr($apiName,0,4) == 'wiki' ) {	// work-around, to be tested/revised
+if ( 2 > 3 && substr($apiName,0,4) == 'wiki' ) {	// work-around, to be tested/revised, disabled currently
 	$numFound = $getJsonAPI->getNumFound();
 } elseif ( isset($metaMap['citeproc'][$apiHost]) && ( $_is_intranet || !$_is_scopus_or_wos ) ) {
 	$numFound = @intval( websearch_json_value_by_path( $jsonAry, $metaMap['citeproc'][$apiHost]['_numFound'] ) );
@@ -326,6 +338,14 @@ if ( $numFound == 1 ) {
 			$htmlAry['footer'] .= '<a id="' . 'lib4ri-bentobox-next-link-' . ($sLim+$sOff) . '" href="javascript:" ';
 			$htmlAry['footer'] .= 'onclick="javascript:lib4riSearchBentoboxNext(\''.$getJsonAPI->searchTerm.'\','.($sOff+$sLim).',this.id,\'below '.$htmlTmp.'\');"';
 			$htmlAry['footer'] .= '>' . $htmlTmp . '</a></span>';
+		/*
+			if ( $sLeft > $sLim ) {
+				$htmlAry['footer'] .= ' | <span id="' . 'lib4ri-bentobox-next-desc-' . ($sLim+$sOff) . '"> see ';
+				$htmlAry['footer'] .= '<a id="' . 'lib4ri-bentobox-next-link-' . ($sLim+$sOff) . '" href="javascript:" ';
+				$htmlAry['footer'] .= 'onclick="javascript:lib4riSearchBentoboxNext(\''.$getJsonAPI->searchTerm.'\','.($sOff+999999).',this.id,\'below '.$htmlTmp.'\');"';
+				$htmlAry['footer'] .= '>' . 'all results' . '</a></span>';
+			}
+		*/
 		}
 
 	} else {
@@ -364,8 +384,10 @@ use Seboettg\CiteProc\CiteProc;
 if ( $no_item_listing || ( !$_is_intranet && $_is_scopus_or_wos ) ) {
 	$numFound += 0;			// dummy command, do nothing right now (just to cover this case)
 }
-elseif ( $apiName == 'wikipedia' ) {	// to be tested
-	$htmlAry['center'] .= '<div class="csl-bib-body">' . $getJsonAPI->makeHtml($jsonAry,175,'csl-entry') . '</div>';
+elseif ( substr($apiName,0,4) == 'wiki' ) {
+	$html = $getJsonAPI->makeHtml($searchTerm);
+	$htmlAry['center'] .= '<div class="csl-bib-body" style="margin:0 0 ' . ( @empty($tmpAry['extract']) ? '.5ex' : '0' ) . ' 1em;">' . $html . '</div>';
+	$htmlAry['footer'] = ''; // = '<div style="display:none;">' . $htmlAry['footer'] . '</div>';	// Hide (currently) not to see related results!(?)
 }
 elseif ( $getJsonAPI->apiLabel == 'Journal List' ) {
 	// Generate the tab content for the journal tab (trying to adopt Citeproc handling/look widely)

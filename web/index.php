@@ -33,7 +33,7 @@ if ( $html = @file_get_contents($dirBase.'search/search.navigation.html') ) { ec
 echo '</div>';
 
 echo '<div id="lib4ri-ch-websearch" style="margin-bottom:4ex;">';
-if ( $html = @file_get_contents($dirBase.'search/drupal.node-code.php?css=no') ) { echo $html; }
+if ( $html = @file_get_contents($dirBase.'search/drupal.node-code.html') ) { echo $html; }
 echo '</div>';
 
 echo '<div id="lib4ri-ch-footer" style="position:fixed; bottom:0px; width:100%">';
@@ -42,3 +42,4 @@ echo '</div>';
 
 
 echo '</body></html>';
+
