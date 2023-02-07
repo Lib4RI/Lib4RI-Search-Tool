@@ -252,7 +252,8 @@ if ( !( $got = @strip_tags($_GET['js']) ) || $got[0] == 'y' ) {
 
 				<div class="lib4ri-bentobox-container">
 					<label class="lib4ri-bentobox-label">Lib4RI</label>
-					<div id="lib4ri-bentobox-linkset-3-1-1" class="lib4ri-bentobox-linkset" data-api="institutes:Lib4RI:Search Lib4RI website with Google"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
+					<!-- div id="lib4ri-bentobox-linkset-3-1-1" class="lib4ri-bentobox-linkset" data-api="institutes:Lib4RI:Search Lib4RI website with Google"><div class="lib4ri-search-anim-block">&nbsp;</div></div -->
+					<div class="lib4ri-bentobox-result" data-api="" id="lib4ri-bentobox-lib4ricms"><div class="lib4ri-search-anim-block">&nbsp;</div></div>
 				</div>
 
 			</div>

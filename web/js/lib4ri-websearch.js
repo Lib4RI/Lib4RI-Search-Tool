@@ -20,15 +20,15 @@ if ( lib4riSearchTab == undefined ) {
 	},
 	lib4riSearchTab[1] = {
 		label: 'Articles, Books, etc.',
-		desc : 'Search Scopus, WoS, swisscovery for articles, books, etc.',
+		desc : 'Search for articles, books and more',
 	},
 	lib4riSearchTab[2] = {
 		label: 'Journals',
-		desc : 'Search swisscovery for online journals',
+		desc : 'Search for journals',
 	},
 	lib4riSearchTab[3] = {
-		label: 'Other resources',
-		desc : 'Assist searching on other platforms',
+		label: 'Website',
+		desc : 'Search our website',
 	}
 }
 
@@ -410,6 +410,10 @@ if ( typeof(lib4riSearchLinkDirect) != 'function' ) {
 
 if ( typeof(lib4riSearchBentoboxTuner) != 'function' ) {
 	function lib4riSearchBentoboxTuner(searchFind = '',searchOffset = -1, searchLimit = -1) {
+		if ( searchOffset < -1 ) {
+			searchOffset = 0 - searchOffset;
+			searchLimit = 99999;
+		}
 		if ( searchFind && searchFind != '' ) {
 			let bbElem = document.getElementById('lib4ri-tab-container');
 			if ( bbElem && bbElem.style && bbElem.style.display == 'none' ) {

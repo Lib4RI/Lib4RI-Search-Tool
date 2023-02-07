@@ -67,7 +67,20 @@ class apiQueryUtils
 		$this->citeStyle = W_S_CITEPROC_STYLE;
 	}
 
-	public function cleanTerm($searchTerm = '', $tuning = ['urldecode','strip_tags'] )
+	public function cleanTerm($term = '', $preProcess = ['cleanUrlInput','stripTags'] )
+	{
+		foreach( @array_slice($preProcess,0) as $funcName ) {
+			if ( method_exists($this,$funcName) ) {
+				$term = $this->$funcName($term);
+			}
+			elseif ( function_exists($funcName) ) {
+				$term = $funcName($term);
+			}
+		}
+		return trim( preg_replace('/\s+/',' ',$term) );
+	}
+
+	public function cleanTermOld($searchTerm = '', $tuning = ['urldecode','strip_tags'] )
 	{
 		// clean-up for/against quotes+tags:
 	//	return implode(' ',array_map('trim',str_getcsv(preg_replace('/\s+/',' ',strip_tags(urldecode($searchTerm))),' ')));
@@ -248,6 +261,7 @@ class apiQueryUtils
 		$limitAry = array( 
 			'default' => 10,
 			'journal' => 20,
+			'lib4ricms' => 500,
 		);
 		$argAry = array(
 		/*	'find'   => @trim(rawurldecode($_GET['find'])),		*/
@@ -1306,7 +1320,10 @@ class apiQueryCurrency extends apiQueryUtils
 	}
 }
 
-
+/*
+	Wikipedia 'related list' API 
+	This is intended to show result links for a given search term as a list (similar to other APIs used here)
+*/
 class apiQueryWikipedia extends apiQueryUtils
 {
 	// NOT FINAL YET - WORK IN PROGRESS!
@@ -1393,9 +1410,12 @@ class apiQueryWikipedia extends apiQueryUtils
 		$jsonAry = json_decode( $this->makeQuery($apiUrl), true );
 		return @intval($jsonAry['query']['searchinfo']['totalhits']);
 	}
-		
 }
 
+/*
+	Wikipedia 'Best Hit' API 
+	Intended to present 1 result by composing the HTML/content take from the best/top search result found.
+*/
 class apiQueryWikihit extends apiQueryUtils
 {
 	/* Main issue:
@@ -1410,6 +1430,7 @@ class apiQueryWikihit extends apiQueryUtils
 	public $numFound;
 	public $apiUrlList;
 	public $wikiList;	// intended to be array, but do NOT initate it! Example: https://en.wikipedia.org/w/api.php?&action=opensearch&search=Functional%20Ecology
+	public $imgData;	// data of the thumbnail: array ( 'url' => '', 'width' => 0, 'height' => 0 )
 
 	public function __construct($apiLabel = '')
 	{
@@ -1485,15 +1506,32 @@ class apiQueryWikihit extends apiQueryUtils
 		return $jsonData;
 	}
 
-	public function makeHtml($searchTerm = '', $langAry = ['en','de','fr','it'] )
+	public function makeHtml($searchTerm = '', $imgHeight = 200, $langAry = ['en','de','fr','it'] )
 	{
 		$tmpAry = json_decode($this->queryNow($searchTerm),true);
 		$html = '';
 		if ( @!empty($tmpAry['extract']) ) {
-
-			$html = '<img src="' . $tmpAry['thumbnail']['source'] . '" height="' . /* min($tmpAry['thumbnail']['height'],200) . */ '180px" />';
-			$html = '<a href="' . $tmpAry['content_urls']['desktop']['page'] . '" target="_blank" style="float:right; margin:0 0 3px 1ex;">' . $html . '</a> ';
-
+			if ( $imgHeight != 0 && ( $html = @trim($tmpAry['thumbnail']['source']) ) ) {
+				$this->imgData = array(
+					'url' => $html,
+					'width' => $tmpAry['thumbnail']['width'],
+					'height' => $tmpAry['thumbnail']['height'],
+				);
+				if ( $imgHeight > 0 ) {	 // so unchecked/unchanged with -1
+					if ( $tmpAry['thumbnail']['width'] > $tmpAry['thumbnail']['height'] ) {
+						$imgRatio = $tmpAry['thumbnail']['width'] / $tmpAry['thumbnail']['height'];
+						$this->imgData['width'] = $this->imgData['height'];
+						$this->imgData['height'] = $this->imgData['height'] / $imgRatio;
+					}
+					if ( $this->imgData['height'] > $imgHeight ) {
+						$imgRatio = $this->imgData['height'] / $imgHeight;
+						$this->imgData['width'] = $this->imgData['width'] / $imgRatio;
+						$this->imgData['height'] = $imgHeight;
+					}
+				}
+				$html = '<img src="' . $html . '" height="' . $this->imgData['height'] . 'px" />';
+				$html = '<a href="' . $tmpAry['content_urls']['desktop']['page'] . '" target="_blank" style="float:right; margin:0 0 3px 1ex;">' . $html . '</a> ';
+			}
 			$ext = implode(' ',array_slice(explode(' ',$tmpAry['extract_html']),0,75));
 			if ( $pos = strpos($ext,'</b>') ) {
 				$ext = substr($ext,0,$pos+4) . '</a>' . substr($ext,$pos+4);
@@ -1503,7 +1541,8 @@ class apiQueryWikihit extends apiQueryUtils
 			}
 			if ( strlen($tmpAry['extract_html']) > strlen($ext) ) { $ext .= '...'; }
 
-			$html = ( ( stripos($ext,'<p>') === 0 ) ? '<p>'.$html.substr($ext,3) : $html.$ext ) . '<br>';
+			$html = ( ( stripos($ext,'<p>') === 0 ) ? '<p>'.$html.substr($ext,3) : $html.$ext );
+			$html .= ( ( substr($html,-2) == 'p>' ) ? '<br>' : '<br><br>' );
 
 			array_shift($langAry);	// remove 'en'
 		}
@@ -1529,3 +1568,72 @@ if ( !empty($reqTerm) && is_array($exData) ) {
 echo "Exchange Rate " . $reqTerm . ": " . print_r( $exData, 1 );
 */
 
+
+/*
+	LIB4RI *CMS* API
+*/
+class apiQueryLib4riCMS extends apiQueryUtils
+{
+	// See e-Mail from Bogdan Racz <bogdan.racz@dreamproduction.com> / Wednesday, 25 January 2023 12:51
+	
+	public $webHost;
+	public $groupList;	// which groups are allowed to see the content
+	public $linkIntern = false;		// HTML Linking: internal (or for/to new tab)?
+
+	public function __construct($apiLabel = '')
+	{
+		$this->apiName = 'lib4ricms';
+		$this->apiHost = 'lib4ricms';
+		$this->apiLabel = 'Lib4RI Search';		//  will serve a ID for this type of API request!
+		$this->searchLimit = 100;
+		$this->apiKey = '';
+		$this->apiScope = '';
+		parent::__construct($this->apiLabel);
+		
+		$this->webHost = 'https://lib4ri.dpstage.ch';
+		$this->groupList = 'dev,lib4ri,dreamprod';
+	}
+
+	public function apiUrl($searchTerm = '', $searchOffset = -1)
+	{
+		// for example: https://lib4ri.dpstage.ch/search-api.json/"latex%20training"
+		return ( $this->webHost . '/search-api.json/' . rawurlencode( empty($searchTerm) ? $this->getSearchTerm($searchTerm) : $searchTerm ) );
+	}
+
+	public function webUrl($searchTerm = '', $searchOffset = -1)
+	{
+		// to be implented
+		return ( $this->webHost . '/search-tools/' . rawurlencode( empty($searchTerm) ? $this->getSearchTerm($searchTerm) : $searchTerm ) );
+	}
+
+	public function makeHtml($jsonData = null, $maxLength = 150, $cssItem = 'csl-entry')
+	{
+		// $this->makeHtml( $this->queryNow($searchTerm), -1 )
+		$htmlAry = [];
+		$jsonAry = ( is_array($jsonData) ? $jsonData : json_decode( ( is_string($jsonData) ? $jsonData : json_encode($jsonData) ), true ) );
+		$max = $this->searchLimit;		// to count, because of the 'may refer to' matter
+		foreach( $jsonAry as $resIdx => $resAry ) {
+			if ( !( $tmp = $this->cleanTerm( $resAry['title'] ) ) ) { continue; }
+			$url = $this->webHost . strip_tags($resAry['search_api_url']);
+			$tmp = '<a href="' . $url . '"' .  ( $this->linkIntern ? '' : 'target="_blank"' ) . '>' . $tmp . '</a>';
+			if ( $maxLength >= 0 ) {
+				$desc = $this->cleanTerm( $resAry['search_api_excerpt'] ); // rather for safety
+				if ( strlen($desc) > ($maxLength + 20) ) {
+					$desc = rtrim(substr($desc,0,$maxLength+10));
+					if ( $pos = strrpos($desc,' ') ) { $desc = substr($desc,0,$pos); }
+					$desc = rtrim($desc,":;,. \\\r\t\n\v\x00") . '...';
+				}
+				$tmp .= '<br>' . $desc;
+			}
+			$htmlAry[] = '<div class="' . $cssItem . '" style="display:inline-block;">' . $tmp . '</div>';
+			if ( ( --$max ) < 1 ) { break; }
+		}
+		return implode('',$htmlAry);
+	}
+
+	public function getNumFound($searchTerm = '')			/* no way found to get this with the inital request - to be tuned */
+	{
+		$jsonData = $this->queryNow($searchTerm);
+		return ( sizeof($jsonData) );
+	}
+}

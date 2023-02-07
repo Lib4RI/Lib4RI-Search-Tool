@@ -80,18 +80,14 @@ $searchTerm = trim( @strip_tags( urldecode($_GET['find']) ) );		// also availabl
 
 // Special case (legacy support): Produce HTML link tags as we had on the old lib4ri.ch search page.
 // Quite proprietary handling... - partially could be done with JS too, so this probably needs to be revised/removed.
+if ( strtolower($_GET['api']) == 'lib4ricms' && !websearch_ip_from('dev') ) {
+	$_GET['linkset'] = 'Search Lib4RI on Google'; // JAN-23: temporary override!
+}
 if ( $linkSet = @trim(strip_tags($_GET['linkset'])) ) {
 	if ( stripos($linkSet,'Google') && stripos($linkSet,'Lib4RI') ) { // temp. exception: 'unter construction' for internal/lib4ri.ch search:
-		$htmlAry = array(
-			'<table style="border:0; margin:2ex 0 2ex 0; padding:0;"><tbody><tr><td style="margin-right:2ex;">',
-			'<img src="https://svgsilh.com/png-512/150271-3f51b5.png" width="256" height="238" style="width:256px; height:238px;">',
-			'<!-- image source: https://wordpress.org/openverse/image/b18cfb7f-58ee-4108-b935-7c3fb9d79ce5/ -->',
-			'</td><td>&nbsp;</td><td style="vertical-align:top;">',
-			'<br>With the relaunch of our website, you will see a a results list here. <br>Until then, please use this customized ',
-			'<a href="https://www.google.com/search?hl=en&num=30&q=site%3Awww.lib4ri.ch%20' . rawurlencode($searchTerm) . '" target="_blank">Google link to search lib4ri.ch</a>',
-			'.</td></tr></tbody></table>',
-		);
-		$retAry = array( 'set' => array( implode('',$htmlAry) ) );		// for compatibility, send 'set' as well!
+		if ( !( $twigTemplate = @file_get_contents('./twig/lib4ri-search-under-const.twig') ) ) { $twigTemplate = 'Under Construction'; }
+		$twigTemplate = _lib4ri_twigSimple( array( 'find' => rawurlencode($searchTerm) ) , $twigTemplate );
+		$retAry = array( 'set' => array( $twigTemplate ) );		// for compatibility, send 'set' as well!
 		$retAry['html'] = '<div class="lib4ri-bentobox-linkset-link">' . $retAry['set'][0] . '</div>';
 		$tmp = @trim( $GLOBALS['_reqFormat'] );
 		header('Content-Type: ' . ( @empty($GLOBALS['_mimeAry'][$tmp]) ? 'text/plain' : $GLOBALS['_mimeAry'][$tmp] ) . ' charset=utf-8');
@@ -183,6 +179,9 @@ switch ( $apiName ) {
 	case 'dora':
 		$getJsonAPI = new apiQueryDORA( $scopeTmp );
 		break;
+	case 'lib4ricms':
+		$getJsonAPI = new apiQueryLib4riCMS();
+		break;
 	case 'wikipedia':
 		$getJsonAPI = new apiQueryWikihit();
 		break;
@@ -236,6 +235,8 @@ if ( $_is_intranet || !$_is_scopus_or_wos ) {
 	$jsonAry = json_decode($jsonCode, true /* TRUE for an array, note that some field names from the APIs may have 'illegal' charaters */ );
 }
 
+// die( print_r( $jsonAry, 1 ) );
+
 if ( @intval($_GET['dev-test']) == 2 && websearch_ip_from('dev') ) { echo print_r( json_encode($jsonAry,JSON_PRETTY_PRINT), 1 ); exit; }
 
 if ( empty($jsonCode) ) {
@@ -281,6 +282,8 @@ if ( @intval($_GET['dev-test']) == 6 && websearch_ip_from('dev') ) { echo "JSON 
 $numFound = 0;
 if ( 2 > 3 && substr($apiName,0,4) == 'wiki' ) {	// work-around, to be tested/revised, disabled currently
 	$numFound = $getJsonAPI->getNumFound();
+} elseif ( $apiName == 'lib4ricms' ) {
+	$numFound = @sizeof( $jsonAry );
 } elseif ( isset($metaMap['citeproc'][$apiHost]) && ( $_is_intranet || !$_is_scopus_or_wos ) ) {
 	$numFound = @intval( websearch_json_value_by_path( $jsonAry, $metaMap['citeproc'][$apiHost]['_numFound'] ) );
 }
@@ -338,14 +341,14 @@ if ( $numFound == 1 ) {
 			$htmlAry['footer'] .= '<a id="' . 'lib4ri-bentobox-next-link-' . ($sLim+$sOff) . '" href="javascript:" ';
 			$htmlAry['footer'] .= 'onclick="javascript:lib4riSearchBentoboxNext(\''.$getJsonAPI->searchTerm.'\','.($sOff+$sLim).',this.id,\'below '.$htmlTmp.'\');"';
 			$htmlAry['footer'] .= '>' . $htmlTmp . '</a></span>';
-		/*
+
 			if ( $sLeft > $sLim ) {
-				$htmlAry['footer'] .= ' | <span id="' . 'lib4ri-bentobox-next-desc-' . ($sLim+$sOff) . '"> see ';
+				$htmlTmp = "Results " . $sOff . "-" . $numFound;
+				$htmlAry['footer'] .= ' | <span id="' . 'lib4ri-bentobox-next-desc-' . ($sLim+$sOff) . '">See ';
 				$htmlAry['footer'] .= '<a id="' . 'lib4ri-bentobox-next-link-' . ($sLim+$sOff) . '" href="javascript:" ';
-				$htmlAry['footer'] .= 'onclick="javascript:lib4riSearchBentoboxNext(\''.$getJsonAPI->searchTerm.'\','.($sOff+999999).',this.id,\'below '.$htmlTmp.'\');"';
-				$htmlAry['footer'] .= '>' . 'all results' . '</a></span>';
+				$htmlAry['footer'] .= 'onclick="javascript:lib4riSearchBentoboxNext(\''.$getJsonAPI->searchTerm.'\','.(0-($sOff+$sLim)).',this.id,\'below '.$htmlTmp.'\');"';
+				$htmlAry['footer'] .= '>' . $htmlTmp . '</a></span>';
 			}
-		*/
 		}
 
 	} else {
@@ -385,9 +388,19 @@ if ( $no_item_listing || ( !$_is_intranet && $_is_scopus_or_wos ) ) {
 	$numFound += 0;			// dummy command, do nothing right now (just to cover this case)
 }
 elseif ( substr($apiName,0,4) == 'wiki' ) {
-	$html = $getJsonAPI->makeHtml($searchTerm);
-	$htmlAry['center'] .= '<div class="csl-bib-body" style="margin:0 0 ' . ( @empty($tmpAry['extract']) ? '.5ex' : '0' ) . ' 1em;">' . $html . '</div>';
-	$htmlAry['footer'] = ''; // = '<div style="display:none;">' . $htmlAry['footer'] . '</div>';	// Hide (currently) not to see related results!(?)
+	$html = $getJsonAPI->makeHtml($searchTerm, 180 );
+	$ary = $getJsonAPI->imgData;
+	$tool = new apiQueryTools();
+	$htmlAry['center'] .= $tool->makeBentobox($html,'margin:0 0 .5ex 1ex; min-height:'.intval($ary['height']).'px;');
+	$htmlAry['footer'] = ''; // Hide/rest, (currently) not to see related results!(?)
+}
+elseif ( $apiName == 'lib4ricms' ) {
+	$html = $getJsonAPI->makeHtml( $jsonAry );
+	$tool = new apiQueryTools();
+	$htmlAry['center'] .= $tool->makeBentobox($html,'margin:0 0 .5ex 1ex;');
+	if ( $numFound > 0 ) {
+		$htmlAry['footer'] = ''; // Hide/rest, (currently) not to see related results!(?)
+	}
 }
 elseif ( $getJsonAPI->apiLabel == 'Journal List' ) {
 	// Generate the tab content for the journal tab (trying to adopt Citeproc handling/look widely)

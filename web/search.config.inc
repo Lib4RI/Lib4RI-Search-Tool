@@ -6,6 +6,8 @@
 
 $configAry = array(
 
+	'INSTALL_PATH'     => $_SERVER['DOCUMENT_ROOT'] . '/web/',	/* local path of the API libraries, may be empty */
+
 	'RESULT_TITLE_LINKED' => false, /* Sometimes SLSP is providing an URL for the title of a search result - should we show the URL? */
 	'API_ROMEO_LIC_VER'   => true,	/* Will add version number (if available) to the license term provided by Sherpa/Romeo */ 
 
@@ -17,6 +19,8 @@ $configAry = array(
 
 	'API_LIB4RI_URL'   => 'https://search.lib4ri.ch/api/',
 	'API_LIB4RI_DIR'   => '/var/www/html/api/',
+
+	'HTML_TAGS_OK'     => 'b,strong,i,em,sub,sup,small,span,cite,blockquote,mark,del,ins,ul,ol,li,dl,dt,dd,p,br' /* a|code */ ,
 
 	/* CiteProc: Define the transformation CSL file (without *.csl): */
 	'CITEPROC_STYLE'   => 'national-institute-of-health-research',
