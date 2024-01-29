@@ -17,7 +17,6 @@ In this repository inside the 'info' directory you may find two PowerPoint prese
 	<br>Rather than using an own customization/fork of Citeproc, on the long term it is intended to use Citeproc's native data pre-processing feature (callback functions) and possibly too a custom set of functions to tune Citeproc's output for HTML usage. 
 
 
-
 ## Disclaimer
 State of the code in this repository is not final, use it at your own risk.<br>
 There is also a strong optimization for the needs of Lib4RI, and configuration options may not be as extensive as possibly desired.<br>
