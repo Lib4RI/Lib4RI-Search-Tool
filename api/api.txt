@@ -1,2 +1,0 @@
-
-Intended installation directory for your own API.
